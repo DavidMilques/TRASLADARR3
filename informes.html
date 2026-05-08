@@ -49,7 +49,7 @@ tr:hover td{background:var(--bg)}
 </head>
 <body>
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbxvtz-Q5PBCpeTh1zIF81c1eR1l1-1VSFml-j3UA-79lkyeHjJDD6OMYCULmpkPCWvF/exec';
+const API_URL = 'https://script.google.com/macros/s/TU_ID_AQUI/exec';
 const DASH_URL = 'https://davidmilques.github.io/TRASLADARR3/dashboard.html';
 const STATS_URL = 'https://davidmilques.github.io/TRASLADARR3/estadisticas.html';
 let datos = null;
@@ -57,9 +57,8 @@ let tabActivo = 'servicio';
 </script>
 
 <div class="topbar">
-  <img src="logo.png" alt="Logo" style="height:32px;object-fit:contain;vertical-align:middle">
+  <h1>TRASLADARR3 — Informes</h1>
   <div class="topbar-nav">
-    <a class="nav-link" href="login.html">Inicio</a>
     <a class="nav-link" id="link-dash" href="#">Dashboard</a>
     <a class="nav-link" id="link-stats" href="#">Estadísticas</a>
   </div>
@@ -80,6 +79,7 @@ let tabActivo = 'servicio';
 <div class="tabs">
   <button class="tab-btn sel" onclick="showTab('servicio',this)">Nivel de servicio</button>
   <button class="tab-btn" onclick="showTab('km',this)">Kilómetros</button>
+  <button class="tab-btn" onclick="showTab('ranking',this)">Ranking conductores</button>
 </div>
 
 <div class="content">
@@ -103,6 +103,35 @@ let tabActivo = 'servicio';
       <div class="tbl-wrap" id="tbl-km"><div class="loading"><div class="spinner"></div>Genera el informe con el botón de arriba</div></div>
     </div>
   </div>
+
+  <div id="tab-ranking" style="display:none">
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">Ponderación <span style="font-size:11px;font-weight:400;color:var(--gray)">Ajusta el peso de cada indicador — deben sumar 100</span></div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:8px">
+        <div style="text-align:center"><div style="font-size:10px;color:var(--gray);margin-bottom:3px">Cumpl. citas</div><input type="number" id="p-cumplimiento" value="30" min="0" max="100" style="width:100%;padding:5px;border:1.5px solid var(--blue);border-radius:4px;font-size:14px;font-weight:700;text-align:center;color:#0C447C;background:#E6F1FB" oninput="recalcularRanking()"><div style="font-size:9px;color:var(--gray)">%</div></div>
+        <div style="text-align:center"><div style="font-size:10px;color:var(--gray);margin-bottom:3px">Adherencia</div><input type="number" id="p-adherencia" value="25" min="0" max="100" style="width:100%;padding:5px;border:1.5px solid var(--blue);border-radius:4px;font-size:14px;font-weight:700;text-align:center;color:#0C447C;background:#E6F1FB" oninput="recalcularRanking()"><div style="font-size:9px;color:var(--gray)">%</div></div>
+        <div style="text-align:center"><div style="font-size:10px;color:var(--gray);margin-bottom:3px">Km realizados</div><input type="number" id="p-km" value="20" min="0" max="100" style="width:100%;padding:5px;border:1.5px solid var(--blue);border-radius:4px;font-size:14px;font-weight:700;text-align:center;color:#0C447C;background:#E6F1FB" oninput="recalcularRanking()"><div style="font-size:9px;color:var(--gray)">%</div></div>
+        <div style="text-align:center"><div style="font-size:10px;color:var(--gray);margin-bottom:3px">Tiendas</div><input type="number" id="p-tiendas" value="15" min="0" max="100" style="width:100%;padding:5px;border:1.5px solid var(--blue);border-radius:4px;font-size:14px;font-weight:700;text-align:center;color:#0C447C;background:#E6F1FB" oninput="recalcularRanking()"><div style="font-size:9px;color:var(--gray)">%</div></div>
+        <div style="text-align:center"><div style="font-size:10px;color:var(--gray);margin-bottom:3px">Pallets</div><input type="number" id="p-pallet" value="10" min="0" max="100" style="width:100%;padding:5px;border:1.5px solid var(--blue);border-radius:4px;font-size:14px;font-weight:700;text-align:center;color:#0C447C;background:#E6F1FB" oninput="recalcularRanking()"><div style="font-size:9px;color:var(--gray)">%</div></div>
+      </div>
+      <div id="pesos-aviso" style="font-size:11px;text-align:center;padding:5px;border-radius:4px;background:#E1F5EE;color:#085041">✓ Los pesos suman 100%</div>
+    </div>
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">Top 3 conductores del período</div>
+      <div id="podio-wrap" style="display:flex;align-items:flex-end;justify-content:center;gap:16px;padding:10px 0 4px;min-height:170px"></div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="padding:12px 16px;font-size:13px;font-weight:600;color:#2C2C2A;display:flex;justify-content:space-between;align-items:center">
+        Ranking completo
+        <button class="export-btn" onclick="exportarRanking()">Exportar CSV</button>
+      </div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>#</th><th>Conductor</th><th>Cumpl. citas</th><th>Adherencia</th><th>Km</th><th>Tiendas</th><th>Pallets</th><th>Viajes</th><th style="background:#E6F1FB;color:#0C447C">Score</th></tr></thead>
+        <tbody id="ranking-tbody"></tbody>
+      </table></div>
+    </div>
+  </div>
+
 </div>
 
 <div class="toast" id="toast"></div>
@@ -133,9 +162,15 @@ async function cargar(){
     datos=await r.json();
     if(datos.error)throw new Error(datos.error);
   }catch(e){datos=demoInformes();toast('Modo demo');}
-  document.getElementById('f-info').textContent=`${datos.nivelServicio.length} filas · ${datos.kilometros.length} despachos`;
+  // Cargar adherencia para el ranking
+    try{
+      const urlAdh=`${API_URL}?action=getEstadisticas&fechaDesde=${desde}&fechaHasta=${hasta}`+(corte?`&corte=${encodeURIComponent(corte)}`:'');
+      const ra=await fetch(urlAdh);const da=await ra.json();
+      if(!da.error){if(da.adherencia)datos.adherencia=da.adherencia;}
+    }catch(ea){}
+    document.getElementById('f-info').textContent=`${datos.nivelServicio.length} filas · ${datos.kilometros.length} despachos`;
     if(datos.cortes&&datos.cortes.length){const sel=document.getElementById('f-corte');const val=sel.value;sel.innerHTML='<option value="">Todos los cortes</option>'+datos.cortes.map(c=>`<option value="${c}"${c===val?' selected':''}>${c}</option>`).join('');}
-  renderServicio();renderKm();
+  renderServicio();renderKm();if(tabActivo==='ranking')recalcularRanking();
 }
 
 function renderServicio(){
@@ -185,10 +220,13 @@ function renderKm(){
 
 function showTab(name,btn){
   tabActivo=name;
-  document.getElementById('tab-servicio').style.display=name==='servicio'?'block':'none';
-  document.getElementById('tab-km').style.display=name==='km'?'block':'none';
+  ['servicio','km','ranking'].forEach(t=>{
+    const el=document.getElementById('tab-'+t);
+    if(el)el.style.display=t===name?'block':'none';
+  });
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('sel'));
   btn.classList.add('sel');
+  if(name==='ranking')recalcularRanking();
 }
 
 function exportarCSV(tipo){
@@ -209,6 +247,172 @@ function exportarCSV(tipo){
 }
 
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+
+// ─────────────────────────────────────────────────────────────────
+// RANKING CONDUCTORES
+// ─────────────────────────────────────────────────────────────────
+let rankingData = [];
+
+function calcularRanking() {
+  if (!datos) return [];
+  var porCond = {};
+
+  function initCond(nombre) {
+    if (!porCond[nombre]) porCond[nombre] = {
+      nombre:nombre, protocolos:new Set(),
+      tiendas:0, tiendasOk:0, llegadas:0, llegsATiempo:0,
+      km:0, pallets:0, tiempoReal:0, tiempoEsperado:0
+    };
+  }
+
+  (datos.nivelServicio||[]).forEach(function(r){
+    var c = r.conductor||r.placa||'—';
+    initCond(c);
+    porCond[c].protocolos.add(r.protocolo);
+    porCond[c].tiendas++;
+    if(r.cumplimiento!=='—') porCond[c].llegadas++;
+    if(r.cumplimiento==='A TIEMPO'){ porCond[c].tiendasOk++; porCond[c].llegsATiempo++; }
+  });
+
+  (datos.kilometros||[]).forEach(function(r){
+    var c = r.conductor||'—';
+    initCond(c);
+    porCond[c].km      += parseFloat(r.kilometros)||0;
+    porCond[c].pallets += parseFloat(r.pallets)||0;
+    porCond[c].protocolos.add(r.protocolo);
+  });
+
+  if(datos.adherencia){
+    datos.adherencia.forEach(function(a){
+      var c = a.conductor||'—';
+      if(!porCond[c]||a.estado==='sin_base')return;
+      porCond[c].tiempoReal     += a.tiempoReal||0;
+      porCond[c].tiempoEsperado += a.tiempoEsperado||0;
+    });
+  }
+
+  var lista = Object.values(porCond).map(function(c){
+    c.totalViajes      = c.protocolos.size;
+    c.pctCumplimiento  = c.llegadas>0 ? Math.round(c.llegsATiempo/c.llegadas*100) : 0;
+    c.pctAdherencia    = c.tiempoEsperado>0 ? Math.round(c.tiempoReal/c.tiempoEsperado*100) : null;
+    c.scoreAdherencia  = c.pctAdherencia!==null ? Math.max(0,Math.min(100,200-c.pctAdherencia)) : null;
+    return c;
+  });
+
+  var maxKm      = Math.max.apply(null,lista.map(function(c){return c.km;}).concat([1]));
+  var maxTiendas = Math.max.apply(null,lista.map(function(c){return c.tiendas;}).concat([1]));
+  var maxPallets = Math.max.apply(null,lista.map(function(c){return c.pallets;}).concat([1]));
+
+  lista.forEach(function(c){
+    c.scoreKm      = Math.round(c.km/maxKm*100);
+    c.scoreTiendas = Math.round(c.tiendas/maxTiendas*100);
+    c.scorePallets = Math.round(c.pallets/maxPallets*100);
+  });
+  return lista;
+}
+
+function recalcularRanking() {
+  rankingData = calcularRanking();
+  var tbody = document.getElementById('ranking-tbody');
+  var podio = document.getElementById('podio-wrap');
+  if(!tbody||!podio) return;
+
+  if(!rankingData.length){
+    tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:20px;color:#5F5E5A">Genera el informe primero con el botón "Generar informes"</td></tr>';
+    podio.innerHTML='<div style="text-align:center;color:#5F5E5A;font-size:12px;padding:20px">Sin datos</div>';
+    return;
+  }
+
+  var pCumpl = parseInt(document.getElementById('p-cumplimiento').value)||0;
+  var pAdh   = parseInt(document.getElementById('p-adherencia').value)||0;
+  var pKm    = parseInt(document.getElementById('p-km').value)||0;
+  var pTiend = parseInt(document.getElementById('p-tiendas').value)||0;
+  var pPall  = parseInt(document.getElementById('p-pallet').value)||0;
+  var total  = pCumpl+pAdh+pKm+pTiend+pPall;
+  var aviso  = document.getElementById('pesos-aviso');
+  if(aviso){
+    if(total!==100){
+      aviso.textContent='Los pesos suman '+total+'% — deben sumar 100%';
+      aviso.style.background='#FCEBEB'; aviso.style.color='#791F1F';
+    }else{
+      aviso.textContent='✓ Los pesos suman 100%';
+      aviso.style.background='#E1F5EE'; aviso.style.color='#085041';
+    }
+  }
+
+  rankingData.forEach(function(c){
+    var scoreAdh = c.scoreAdherencia!==null ? c.scoreAdherencia : 50;
+    c.score = Math.round(
+      (c.pctCumplimiento*pCumpl + scoreAdh*pAdh +
+       c.scoreKm*pKm + c.scoreTiendas*pTiend + c.scorePallets*pPall) / 100
+    );
+  });
+  rankingData.sort(function(a,b){return b.score-a.score;});
+
+  // Podio
+  var colores  = ['#C9A227','#A8A9AD','#CD7F32'];
+  var alturas  = [140,110,90];
+  var medallas = ['🥇','🥈','🥉'];
+  var ordens   = [1,0,2];
+  podio.innerHTML = ordens.map(function(idx){
+    if(!rankingData[idx])return '';
+    var c=rankingData[idx];
+    return '<div style="text-align:center;flex:1;max-width:200px">'
+      +'<div style="font-size:28px;margin-bottom:4px">'+medallas[idx]+'</div>'
+      +'<div style="font-size:12px;font-weight:700;color:#2C2C2A;margin-bottom:2px">'+c.nombre+'</div>'
+      +'<div style="font-size:24px;font-weight:800;color:'+colores[idx]+'">'+c.score+'</div>'
+      +'<div style="font-size:10px;color:#5F5E5A;margin-bottom:6px">puntos</div>'
+      +'<div style="background:'+colores[idx]+';height:'+alturas[idx]+'px;border-radius:6px 6px 0 0;display:flex;align-items:center;justify-content:center">'
+      +'<span style="font-size:24px;font-weight:900;color:white">'+(idx+1)+'º</span></div>'
+      +'</div>';
+  }).join('');
+
+  // Tabla
+  tbody.innerHTML = rankingData.map(function(c,i){
+    var medalla = i===0?'🥇':i===1?'🥈':i===2?'🥉':('#'+(i+1));
+    var sc = c.score>=80?'#085041':c.score>=60?'#633806':'#791F1F';
+    var bAdh = c.pctAdherencia===null
+      ? '<span style="background:#F1EFE8;color:#5F5E5A;display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px">Sin datos</span>'
+      : c.pctAdherencia<=100
+        ? '<span style="background:#E1F5EE;color:#085041;display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px">'+c.pctAdherencia+'%</span>'
+        : c.pctAdherencia<=115
+          ? '<span style="background:#FAEEDA;color:#633806;display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px">'+c.pctAdherencia+'%</span>'
+          : '<span style="background:#FCEBEB;color:#791F1F;display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px">'+c.pctAdherencia+'%</span>';
+    var bCumpl = c.pctCumplimiento>=90
+      ? 'background:#E1F5EE;color:#085041'
+      : c.pctCumplimiento>=70
+        ? 'background:#FAEEDA;color:#633806'
+        : 'background:#FCEBEB;color:#791F1F';
+    return '<tr>'
+      +'<td style="font-weight:700;font-size:14px">'+medalla+'</td>'
+      +'<td style="font-weight:600">'+c.nombre+'</td>'
+      +'<td><span style="'+bCumpl+';display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px">'+c.pctCumplimiento+'%</span></td>'
+      +'<td>'+bAdh+'</td>'
+      +'<td>'+Math.round(c.km).toLocaleString('es-CO')+' km</td>'
+      +'<td>'+c.tiendas+'</td>'
+      +'<td>'+Math.round(c.pallets).toLocaleString('es-CO')+'</td>'
+      +'<td>'+c.totalViajes+'</td>'
+      +'<td style="font-weight:700;font-size:14px;color:'+sc+';background:#E6F1FB">'+c.score+'</td>'
+      +'</tr>';
+  }).join('');
+}
+
+function exportarRanking(){
+  if(!rankingData.length){toast('Genera el informe primero');return;}
+  var headers=['Posición','Conductor','% Cumpl. Citas','% Adherencia','Km','Tiendas','Pallets','Viajes','Score'];
+  var rows=rankingData.map(function(c,i){return[
+    i+1,c.nombre,c.pctCumplimiento+'%',
+    c.pctAdherencia!==null?c.pctAdherencia+'%':'Sin datos',
+    Math.round(c.km),c.tiendas,Math.round(c.pallets),c.totalViajes,c.score
+  ];});
+  var csv=[headers].concat(rows).map(function(r){return r.map(function(v){return'"'+v+'"';}).join(',');}).join('\n');
+  var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='ranking_conductores.csv';
+  a.click();toast('CSV exportado');
+}
 
 function demoInformes(){
   return{
