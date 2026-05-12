@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>TRASLADARR3 — Informes</title>
+<title>FleteTrack — Informes</title>
 <style>
 :root{--blue:#185FA5;--blue-l:#E6F1FB;--blue-t:#0C447C;--green:#1D9E75;--green-l:#E1F5EE;--green-t:#085041;--amber:#BA7517;--amber-l:#FAEEDA;--amber-t:#633806;--red:#E24B4A;--red-l:#FCEBEB;--border:#e0ddd6;--bg:#f8f7f4;--gray:#5F5E5A;--gray-l:#F1EFE8;--gray-t:#2C2C2A;--r:10px;--rs:6px}
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
@@ -49,15 +49,15 @@ tr:hover td{background:var(--bg)}
 </head>
 <body>
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbxh6z6dFbxuQlj78rBZJGbcdB7V2DRkCXpT79b6h90AHVnmkhiGekwcryWnCfG5UfJI/exec';
-const DASH_URL = 'https://davidmilques.github.io/TRASLADARR3/dashboard.html';
+const API_URL = 'https://script.google.com/macros/s/TU_ID_AQUI/exec';
+const DASH_URL = 'https://davidmilques.github.io/TRASLADARR3/dashboard_v2.html';
 const STATS_URL = 'https://davidmilques.github.io/TRASLADARR3/estadisticas.html';
 let datos = null;
 let tabActivo = 'servicio';
 </script>
 
 <div class="topbar">
-  <h1>TRASLADARR3 — Informes</h1>
+  <h1>FleteTrack — Informes</h1>
   <div class="topbar-nav">
     <a class="nav-link" id="link-dash" href="#">Dashboard</a>
     <a class="nav-link" id="link-stats" href="#">Estadísticas</a>
@@ -188,7 +188,7 @@ function renderServicio(){
   document.getElementById('tbl-servicio').innerHTML=`<table>
     <thead><tr><th>Fecha</th><th>Placa</th><th>Protocolo</th><th>Inicio cargue</th><th>Cód. tienda</th><th>Tienda</th><th>Hora cita</th><th>Llegada real</th><th>Inicio desc.</th><th>Fin desc.</th><th>Salida</th><th>Cumplimiento</th></tr></thead>
     <tbody>${rows.map(r=>`<tr>
-      <td>${r.fecha}</td><td style="font-weight:600">${r.placa}</td><td style="color:var(--blue)">${r.protocolo}</td>
+      <td>${r.fecha}</td><td style="font-weight:600">${r.placa}</td><td>${r.conductor||'—'}</td><td style="color:var(--blue)">${r.protocolo}</td>
       <td>${r.inicioCargue||'—'}</td><td>${r.codigoTienda}</td><td>${r.tienda}</td>
       <td>${r.horaCita||'—'}</td><td>${r.horaLlegada||'—'}</td>
       <td>${r.horaInicioDesc||'—'}</td><td>${r.horaFinDesc||'—'}</td><td>${r.horaSalida||'—'}</td>
@@ -233,8 +233,8 @@ function exportarCSV(tipo){
   if(!datos){toast('Genera el informe primero');return;}
   let headers,rows;
   if(tipo==='servicio'){
-    headers=['Fecha','Placa','Protocolo','Inicio cargue','Cod tienda','Tienda','Hora cita','Hora llegada','Inicio descargue','Fin descargue','Hora salida','Cumplimiento'];
-    rows=datos.nivelServicio.map(r=>[r.fecha,r.placa,r.protocolo,r.inicioCargue,r.codigoTienda,r.tienda,r.horaCita,r.horaLlegada,r.horaInicioDesc,r.horaFinDesc,r.horaSalida,r.cumplimiento]);
+    headers=['Fecha','Placa','Conductor','Protocolo','Inicio cargue','Cod tienda','Tienda','Hora cita','Hora llegada','Inicio descargue','Fin descargue','Hora salida','Cumplimiento'];
+    rows=datos.nivelServicio.map(r=>[r.fecha,r.placa,r.conductor||'',r.protocolo,r.inicioCargue,r.codigoTienda,r.tienda,r.horaCita,r.horaLlegada,r.horaInicioDesc,r.horaFinDesc,r.horaSalida,r.cumplimiento]);
   }else{
     headers=['Fecha','Protocolo','Placa Dispo','Placa Backup','Kilometros','Peajes','Conductor'];
     rows=datos.kilometros.map(r=>[r.fecha,r.protocolo,r.placaDispo,r.placaBackup,r.kilometros,r.peajes,r.conductor]);
@@ -267,7 +267,7 @@ function calcularRanking() {
   }
 
   (datos.nivelServicio||[]).forEach(function(r){
-    var c = r.conductor||r.placa||'—';
+    var c = (r.conductor||'').trim()||'Sin nombre';
     initCond(c);
     porCond[c].protocolos.add(r.protocolo);
     porCond[c].tiendas++;
@@ -276,7 +276,7 @@ function calcularRanking() {
   });
 
   (datos.kilometros||[]).forEach(function(r){
-    var c = r.conductor||'—';
+    var c = (r.conductor||'').trim()||'Sin nombre';
     initCond(c);
     porCond[c].km      += parseFloat(r.kilometros)||0;
     porCond[c].pallets += parseFloat(r.pallets)||0;
