@@ -49,7 +49,7 @@ tr:hover td{background:var(--bg)}
 </head>
 <body>
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbxh6z6dFbxuQlj78rBZJGbcdB7V2DRkCXpT79b6h90AHVnmkhiGekwcryWnCfG5UfJI/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxvIUxCnDycIkC5SuwsRXPLDyMhcxVKUkU-DfNYitPEnH0UlFEcycvLVmyN8EJ8f62H/exec';
 const DASH_URL = 'https://davidmilques.github.io/TRASLADARR3/dashboard.html';
 const STATS_URL = 'https://davidmilques.github.io/TRASLADARR3/estadisticas.html';
 let datos = null;
@@ -186,7 +186,7 @@ function renderServicio(){
     <div class="scard"><div class="sval" style="color:${pct>=90?'var(--green)':pct>=70?'var(--amber)':'var(--red)'}">${pct}%</div><div class="slbl">Cumplimiento</div></div>`;
   if(!rows.length){document.getElementById('tbl-servicio').innerHTML='<div class="empty">Sin datos para el rango seleccionado</div>';return;}
   document.getElementById('tbl-servicio').innerHTML=`<table>
-    <thead><tr><th>Fecha</th><th>Placa</th><th>Protocolo</th><th>Inicio cargue</th><th>Cód. tienda</th><th>Tienda</th><th>Hora cita</th><th>Llegada real</th><th>Inicio desc.</th><th>Fin desc.</th><th>Salida</th><th>Cumplimiento</th></tr></thead>
+    <thead><tr><th>Fecha</th><th>Placa</th><th>Conductor</th><th>Protocolo</th><th>Inicio cargue</th><th>Cód. tienda</th><th>Tienda</th><th>Hora cita</th><th>Llegada real</th><th>Inicio desc.</th><th>Fin desc.</th><th>Salida</th><th>Cumplimiento</th></tr></thead>
     <tbody>${rows.map(r=>`<tr>
       <td>${r.fecha}</td><td style="font-weight:600">${r.placa}</td><td>${r.conductor||'—'}</td><td style="color:var(--blue)">${r.protocolo}</td>
       <td>${r.inicioCargue||'—'}</td><td>${r.codigoTienda}</td><td>${r.tienda}</td>
