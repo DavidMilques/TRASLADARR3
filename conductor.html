@@ -109,7 +109,7 @@ input[type=file]{display:none}
 <body>
 
 <div class="hdr">
-  <h1 id="hdr-titulo">TRASLADARR3</h1>
+  <h1 id="hdr-titulo">FleteTrack</h1>
   <p id="hdr-sub">Cargando...</p>
 </div>
 
@@ -257,6 +257,7 @@ input[type=file]{display:none}
         <p style="font-size:11px;color:var(--gray)">Agregar foto</p>
       </div>
     </div>
+    <div id="conf-novedad-ruta" class="banner green" style="display:none;margin-bottom:8px"></div>
     <button class="hora-btn amber" onclick="enviarNovedadRuta()">Enviar novedad al operador</button>
   </div>
 </div>
@@ -309,7 +310,7 @@ input[type=file]{display:none}
 // ================================================================
 //  CONFIG
 // ================================================================
-const API_URL      = 'https://script.google.com/macros/s/AKfycbxAKO236WGjNNpAIrj-EyW8Q_-A8Ago2t5ApgLbN0SBkGjPvdDqV6o4L5NvlzsRUii7/exec';
+const API_URL      = 'https://script.google.com/macros/s/AKfycbwAOgawbRsmDdjGWgIdwo-jmlMovFmTOskt4I8aSgAtu4XggxOuFoy3XxauYNOkS_uH/exec';
 const params       = new URLSearchParams(location.search);
 const DESPACHO_ID  = params.get('id') || 'D-1';
 const LS_KEY       = `ft_${DESPACHO_ID}`;
@@ -596,12 +597,22 @@ async function enviarNovedadCargue() {
     'CONTENEDORES':            parseInt(document.getElementById('nc-con').value)||0
   };
   if (!Object.values(vals).some(v => v > 0)) { toast('Ingresa al menos un valor > 0'); return; }
-  // Subir fotos en background
-  (fotosMap['nc']||[]).forEach((f,i) => subirFoto(f, `novedad_cargue_${i+1}`));
-  await apiPost({ action:'registrarNovedadCargue', rowIndex:despacho.rowIndex,
+  // Esperar primera foto para incluir URL en Telegram
+  const fotosNc = (fotosMap['nc']||[]).filter(Boolean);
+  let fotoUrlNc = null;
+  if (fotosNc.length > 0) {
+    fotoUrlNc = await subirFoto(fotosNc[0], 'novedad_cargue_1');
+    fotosNc.slice(1).forEach((f,i) => subirFoto(f, `novedad_cargue_${i+2}`));
+  }
+  await apiPost({ action:'registrarNovedadCargue', rowIndex:despacho.rowIndex, fotoUrl:fotoUrlNc,
     protocolo:despacho.protocolo, placa:despacho.placa, conductor:despacho.conductor,
     fecha:despacho.fecha, dia:despacho.dia, turno:despacho.turno, valores:vals });
-  document.getElementById('banner-nc-ok').style.display = 'block';
+  const bannerNc = document.getElementById('banner-nc-ok');
+  if (bannerNc) {
+    bannerNc.style.display = 'block';
+    bannerNc.innerHTML = `<strong>✓ Novedades de cargue registradas y enviadas al operador.</strong><br>
+      <span style="font-size:11px">El reporte fue enviado. No es necesario volver a registrar.</span>`;
+  }
   document.getElementById('form-nc').style.display = 'none';
   toast('Novedades de cargue registradas');
 }
@@ -610,15 +621,31 @@ async function enviarNovedadRuta() {
   if (!novTipo) { toast('Selecciona el tipo de novedad'); return; }
   const desc = document.getElementById('nr-desc').value.trim();
   if (!desc) { toast('Escribe una descripción'); return; }
-  (fotosMap['nr']||[]).forEach((f,i) => subirFoto(f, `novedad_ruta_${i+1}`));
+  // Esperar la primera foto para incluir la URL en el reporte de Telegram
+  const fotosNr = (fotosMap['nr']||[]).filter(Boolean);
+  let fotoUrl = null;
+  if (fotosNr.length > 0) {
+    toast('Subiendo foto...');
+    fotoUrl = await subirFoto(fotosNr[0], 'novedad_ruta_1');
+    // Subir el resto en paralelo sin bloquear
+    fotosNr.slice(1).forEach((f,i) => subirFoto(f, `novedad_ruta_${i+2}`));
+  }
   await apiPost({ action:'registrarNovedad', rowIndex:despacho.rowIndex,
-    tipo:novTipo, descripcion:desc,
+    tipo:novTipo, descripcion:desc, fotoUrl,
     tiendaAfectada: document.getElementById('nr-tienda').value,
     protocolo:despacho.protocolo, placa:despacho.placa, conductor:despacho.conductor });
   document.getElementById('nr-desc').value = '';
   document.querySelectorAll('.nov-tipo').forEach(n => n.classList.remove('sel'));
   novTipo = '';
   fotosMap['nr'] = []; actualizarFotoCount('nr');
+  // Mostrar confirmación visual
+  const confNr = document.getElementById('conf-novedad-ruta');
+  if (confNr) {
+    confNr.style.display = 'block';
+    confNr.innerHTML = `<strong>✓ Novedad enviada correctamente</strong><br>
+      <span style="font-size:11px">El operador fue notificado. Si necesitas reportar otra novedad puedes hacerlo abajo.</span>`;
+    setTimeout(() => { confNr.style.display = 'none'; }, 8000);
+  }
   toast('Novedad enviada al operador');
 }
 
