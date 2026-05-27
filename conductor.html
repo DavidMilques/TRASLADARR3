@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#185FA5">
-<title>TRASLADARR3 — Conductor</title>
+<title>FleteTrack — Conductor</title>
 <style>
 :root{--blue:#185FA5;--blue-l:#E6F1FB;--blue-t:#0C447C;--green:#1D9E75;--green-l:#E1F5EE;--green-t:#085041;--amber:#BA7517;--amber-l:#FAEEDA;--amber-t:#633806;--red:#E24B4A;--red-l:#FCEBEB;--red-t:#791F1F;--gray:#5F5E5A;--gray-l:#F1EFE8;--gray-t:#2C2C2A;--border:#E0DDD6;--bg:#F8F7F4;--r:10px;--rs:6px}
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;-webkit-tap-highlight-color:transparent}
@@ -310,7 +310,7 @@ input[type=file]{display:none}
 // ================================================================
 //  CONFIG
 // ================================================================
-const API_URL      = 'https://script.google.com/macros/s/AKfycbzH8ze-X5um5R-R1Qax96YxMSMCPAOY2w3-bv_i_hWXVPrv6yhXwyBlpImcOaqCvjE/exec';
+const API_URL      = 'https://script.google.com/macros/s/AKfycbxosW347tpVL3P5q0Q7Zp1Qjzgtg-PmtuplJNcEIAppU5HRRTHnTNi71-Reb29fNEfP/exec';
 const params       = new URLSearchParams(location.search);
 const DESPACHO_ID  = params.get('id') || 'D-1';
 const LS_KEY       = `ft_${DESPACHO_ID}`;
@@ -355,7 +355,7 @@ async function iniciar() {
       : `${API_URL}?action=getDespacho&id=${DESPACHO_ID}`;
     // Timeout de 15 segundos para no bloquear si hay lentitud
     const controller = new AbortController();
-    const timeoutId  = setTimeout(() => controller.abort(), 15000);
+    const timeoutId  = setTimeout(() => controller.abort(), 25000);
     const r = await fetch(urlApi, { signal: controller.signal });
     clearTimeout(timeoutId);
     const d = await r.json();
@@ -378,10 +378,10 @@ async function iniciar() {
     despacho = d.despacho;
     lsSet({ despacho });
   } catch(e) {
+    if (!despacho) { despacho = demoDespacho(); }
     if (e.name === 'AbortError') {
-      toast('Servidor lento — usando datos guardados');
+      toast('Servidor lento — mostrando datos guardados');
     } else {
-      if (!despacho) { despacho = demoDespacho(); }
       toast('Sin conexión — usando datos guardados');
     }
   }
