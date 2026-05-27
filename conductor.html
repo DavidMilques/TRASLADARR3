@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#185FA5">
-<title>TRASLADARR3 — Conductor</title>
+<title>FleteTrack — Conductor</title>
 <style>
 :root{--blue:#185FA5;--blue-l:#E6F1FB;--blue-t:#0C447C;--green:#1D9E75;--green-l:#E1F5EE;--green-t:#085041;--amber:#BA7517;--amber-l:#FAEEDA;--amber-t:#633806;--red:#E24B4A;--red-l:#FCEBEB;--red-t:#791F1F;--gray:#5F5E5A;--gray-l:#F1EFE8;--gray-t:#2C2C2A;--border:#E0DDD6;--bg:#F8F7F4;--r:10px;--rs:6px}
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;-webkit-tap-highlight-color:transparent}
@@ -310,7 +310,7 @@ input[type=file]{display:none}
 // ================================================================
 //  CONFIG
 // ================================================================
-const API_URL      = 'https://script.google.com/macros/s/AKfycbwAOgawbRsmDdjGWgIdwo-jmlMovFmTOskt4I8aSgAtu4XggxOuFoy3XxauYNOkS_uH/exec';
+const API_URL      = 'https://script.google.com/macros/s/AKfycbyquaJvS2s4t0f9ryiTYjhAb-dZXxxu5PwMT05SEhiok6ISyBAfQ5PJPQnGjAw63e3n/exec';
 const params       = new URLSearchParams(location.search);
 const DESPACHO_ID  = params.get('id') || 'D-1';
 const LS_KEY       = `ft_${DESPACHO_ID}`;
@@ -337,15 +337,27 @@ window.addEventListener('unhandledrejection', e => {
 
 async function iniciar() {
   const local = lsGet();
-  // Si hay local con despacho, renderizar inmediatamente
+  // Mostrar UI INMEDIATAMENTE desde localStorage si existe
   if (local?.despacho) {
     despacho = local.despacho;
-    // Mostrar inmediatamente con datos locales mientras carga el servidor
-    iniciarUI();
+    // Ocultar spinner de carga inmediatamente
+    const lc = document.getElementById('load-cargue');
+    const fc = document.getElementById('form-cargue');
+    if (lc) lc.style.display = 'none';
+    if (fc) fc.style.display = 'block';
+    iniciarUI(); // render instantáneo sin esperar red
   }
-  // Cargar desde servidor
+  // Cargar desde servidor en paralelo
   try {
-    const r = await fetch(`${API_URL}?action=getDespacho&id=${DESPACHO_ID}`);
+    const ROW_INDEX = params.get('row') || '';
+    const urlApi = ROW_INDEX
+      ? `${API_URL}?action=getDespacho&id=${DESPACHO_ID}&row=${ROW_INDEX}`
+      : `${API_URL}?action=getDespacho&id=${DESPACHO_ID}`;
+    // Timeout de 15 segundos para no bloquear si hay lentitud
+    const controller = new AbortController();
+    const timeoutId  = setTimeout(() => controller.abort(), 15000);
+    const r = await fetch(urlApi, { signal: controller.signal });
+    clearTimeout(timeoutId);
     const d = await r.json();
     if (d.error) throw new Error(d.error);
     // Merge: local gana en horas intermedias
@@ -366,10 +378,14 @@ async function iniciar() {
     despacho = d.despacho;
     lsSet({ despacho });
   } catch(e) {
-    if (!despacho) { despacho = demoDespacho(); }
-    toast('Sin conexión — usando datos guardados');
+    if (e.name === 'AbortError') {
+      toast('Servidor lento — usando datos guardados');
+    } else {
+      if (!despacho) { despacho = demoDespacho(); }
+      toast('Sin conexión — usando datos guardados');
+    }
   }
-  iniciarUI(); // siempre llamar al final con el estado más actualizado
+  iniciarUI(); // actualizar con datos del servidor si cambiaron
 }
 
 function iniciarUI() {
@@ -604,6 +620,7 @@ async function enviarNovedadCargue() {
     fotoUrlNc = await subirFoto(fotosNc[0], 'novedad_cargue_1');
     fotosNc.slice(1).forEach((f,i) => subirFoto(f, `novedad_cargue_${i+2}`));
   }
+  console.log('enviarNovedadCargue fotoUrlNc:', fotoUrlNc);
   await apiPost({ action:'registrarNovedadCargue', rowIndex:despacho.rowIndex, fotoUrl:fotoUrlNc,
     protocolo:despacho.protocolo, placa:despacho.placa, conductor:despacho.conductor,
     fecha:despacho.fecha, dia:despacho.dia, turno:despacho.turno, valores:vals });
@@ -630,6 +647,7 @@ async function enviarNovedadRuta() {
     // Subir el resto en paralelo sin bloquear
     fotosNr.slice(1).forEach((f,i) => subirFoto(f, `novedad_ruta_${i+2}`));
   }
+  console.log('enviarNovedadRuta fotoUrl:', fotoUrl);
   await apiPost({ action:'registrarNovedad', rowIndex:despacho.rowIndex,
     tipo:novTipo, descripcion:desc, fotoUrl,
     tiendaAfectada: document.getElementById('nr-tienda').value,
@@ -959,13 +977,15 @@ function getNow() {
 }
 
 async function subirFoto(foto, tipo) {
-  if (!foto || !foto.b64) return null;
+  if (!foto || !foto.b64) { console.log('subirFoto: foto sin b64'); return null; }
   try {
+    console.log('subirFoto: subiendo', tipo, 'mime:', foto.mime);
     const r = await apiPost({ action:'subirFoto', base64:foto.b64, nombre:foto.nombre,
       mimeType:foto.mime, tipo, protocolo:despacho.protocolo,
       placa:despacho.placa, fecha:despacho.fecha });
+    console.log('subirFoto respuesta:', JSON.stringify(r));
     return r.url || null;
-  } catch { return null; }
+  } catch(e) { console.log('subirFoto error:', e.message); return null; }
 }
 
 async function apiPost(data) {
