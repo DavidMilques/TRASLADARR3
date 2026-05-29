@@ -91,7 +91,7 @@ body{background:var(--bg);color:#1a1a18;min-height:100vh}
 </head>
 <body>
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbyRLHsJLQvJ8G2vEjnf7wJSdVjy11LPvzFJA7NUtOGSw7HoZxFdYb3OHimSJ6KvizoP/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbz1V4WyPG3wwOiFAnMjfNGmzrDSrwNhUVUNd1Ey3bKfhBQkjTIIbv09jUZEhL8GzHrl/exec';
 const BASE_URL = 'https://davidmilques.github.io/TRASLADARR3/conductor.html';
 const STATS_URL = 'https://davidmilques.github.io/TRASLADARR3/estadisticas.html';
 const INFORMES_URL = 'https://davidmilques.github.io/TRASLADARR3/informes.html';
@@ -101,7 +101,7 @@ let filtroFecha='', filtroEstado='', filtroConductor='', filtroPlaca='', filtroC
 
 <div class="topbar">
   <div class="topbar-left">
-    <h1>TRASLADARR3</h1>
+    <h1>FleteTrack</h1>
     <div class="topbar-nav">
       <a class="nav-link" id="link-stats" href="#">📊 Estadísticas</a>
       <a class="nav-link" id="link-inf" href="#">📋 Informes</a>
@@ -318,6 +318,7 @@ function renderDetalle(i){
       <div class="times-grid">
         <div class="time-box"><div class="time-val">${d.horaOfrecimiento||'—'}</div><div class="time-lbl">Ofrecimiento</div></div>
         <div class="time-box"><div class="time-val">${d.horaEntradaCedi||'—'}</div><div class="time-lbl">Entrada CEDI</div></div>
+        <div class="time-box" style="${d.horaInicioCargue?'background:var(--blue-l);border-color:var(--blue)':''}"><div class="time-val" style="${d.horaInicioCargue?'color:var(--blue-t)':''}">${d.horaInicioCargue||'—'}</div><div class="time-lbl">Inicio cargue</div></div>
         <div class="time-box hi"><div class="time-val">${d.horaSalidaCedi||'—'}</div><div class="time-lbl">Salida CEDI</div></div>
         <div class="time-box"><div class="time-val">${d.horaRetornoCedi||'—'}</div><div class="time-lbl">Retorno real</div></div>
       </div>
