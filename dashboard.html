@@ -91,7 +91,7 @@ body{background:var(--bg);color:#1a1a18;min-height:100vh}
 </head>
 <body>
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbxXaVjAODrgEsepg1CvKRVTtqbhpUgsL5fqeu3O6ApQHHj0C_ADukLcSY2dkRwR7y2j/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxDXvZYy27Z0dGlhGLlEkykpoWfpP_ia9jwvfRu9y7jfDnAL-rEOySV3DL8FqhyDUoT/exec';
 const BASE_URL = 'https://davidmilques.github.io/TRASLADARR3/conductor.html';
 const STATS_URL = 'https://davidmilques.github.io/TRASLADARR3/estadisticas.html';
 const INFORMES_URL = 'https://davidmilques.github.io/TRASLADARR3/informes.html';
@@ -101,7 +101,7 @@ let filtroFecha='', filtroEstado='', filtroConductor='', filtroPlaca='', filtroC
 
 <div class="topbar">
   <div class="topbar-left">
-    <h1>FleteTrack</h1>
+    <h1>TRASLADARR3</h1>
     <div class="topbar-nav">
       <a class="nav-link" id="link-stats" href="#">📊 Estadísticas</a>
       <a class="nav-link" id="link-inf" href="#">📋 Informes</a>
@@ -149,6 +149,24 @@ let filtroFecha='', filtroEstado='', filtroConductor='', filtroPlaca='', filtroC
     <div class="sidebar-hdr">
       <span id="sidebar-count">Despachos</span>
       <span id="nov-badge" style="display:none" class="badge b-novedad pulse"></span>
+    </div>
+    <!-- Panel vehículos en tienda -->
+    <div id="panel-en-tienda" style="display:none;border-bottom:1px solid #E0DDD6">
+      <div style="background:#0F2B5B;color:white;padding:8px 12px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:11px;font-weight:600">🏪 En tienda ahora</span>
+        <span id="en-tienda-count" style="background:rgba(255,255,255,.2);padding:1px 7px;border-radius:10px;font-size:10px;font-weight:600"></span>
+      </div>
+      <div style="overflow-x:auto;max-height:220px;overflow-y:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:11px">
+          <thead><tr style="background:#F4F6FA;position:sticky;top:0">
+            <th style="padding:5px 8px;text-align:left;font-size:9px;font-weight:600;color:#8899AA;border-bottom:1px solid #E0DDD6;white-space:nowrap">PLACA</th>
+            <th style="padding:5px 8px;text-align:left;font-size:9px;font-weight:600;color:#8899AA;border-bottom:1px solid #E0DDD6;white-space:nowrap">TIENDA</th>
+            <th style="padding:5px 8px;text-align:left;font-size:9px;font-weight:600;color:#8899AA;border-bottom:1px solid #E0DDD6;white-space:nowrap">T. EN TIENDA</th>
+            <th style="padding:5px 8px;text-align:left;font-size:9px;font-weight:600;color:#8899AA;border-bottom:1px solid #E0DDD6;white-space:nowrap">ESTADO</th>
+          </tr></thead>
+          <tbody id="en-tienda-tbody"></tbody>
+        </table>
+      </div>
     </div>
     <div class="sidebar-body" id="sidebar-body"><div class="loading"><div class="spinner"></div>Cargando...</div></div>
   </div>
@@ -232,6 +250,7 @@ function aplicarFiltros(){
   renderSidebar();
   if(filtrados.length>0)renderDetalle(selIdx);
   else document.getElementById('main-content').innerHTML='<div class="empty">Sin despachos para estos filtros</div>';
+  renderEnTienda();
 }
 
 function limpiarFiltros(){
@@ -242,6 +261,62 @@ function limpiarFiltros(){
 function badgeCls(estado){const m={'Cargando':'b-cargando','En ruta':'b-ruta','En retorno':'b-retorno','Completado':'b-completado','Novedad':'b-novedad'};return m[estado]||'b-pend';}
 function progColor(estado){const m={'Completado':'var(--green)','Novedad':'var(--red)','En retorno':'#7F77DD','En ruta':'var(--amber)'};return m[estado]||'var(--blue)';}
 function pct(d){if(!d.tiendas.length)return 0;return Math.round(d.tiendas.filter(t=>t.estado==='completado').length/d.tiendas.length*100);}
+
+
+// ── VEHÍCULOS EN TIENDA ──────────────────────────────────────────
+function renderEnTienda() {
+  const ahora = new Date();
+  const filas = [];
+
+  filtrados.forEach(d => {
+    if (!['En ruta','Novedad'].includes(d.estadoCargue)) return;
+    (d.tiendas||[]).forEach(t => {
+      // Tienda activa = tiene hora llegada pero NO tiene hora salida
+      if (!t.horaLlegada || t.horaSalida || t.cerrada) return;
+      // Calcular tiempo en tienda
+      const [hL, mL] = t.horaLlegada.split(':').map(Number);
+      const minLlegada = hL*60 + mL;
+      const minAhora   = ahora.getHours()*60 + ahora.getMinutes();
+      let diffMin = minAhora - minLlegada;
+      if (diffMin < 0) diffMin += 1440; // cruce de medianoche
+      const hrs = Math.floor(diffMin/60);
+      const min = diffMin % 60;
+      const tiempoStr = hrs > 0 ? `${hrs}h ${String(min).padStart(2,'0')}min` : `${min} min`;
+      // Estado: descargando si tiene horaInicioDesc pero no horaFinDesc
+      const descargando = !!t.horaInicioDesc && !t.horaFinDesc;
+      const estado = descargando ? 'Descargando' : 'En espera';
+      const estadoColor = descargando ? '#1D9E75' : '#BA7517';
+      const estadoBg    = descargando ? '#E1F5EE' : '#FAEEDA';
+      // Alerta si lleva más de 60 min
+      const alerta = diffMin > 60;
+      filas.push({ fecha:d.fecha, placa:d.placa, conductor:d.conductor,
+        tienda:t.nombre, llegada:t.horaLlegada, diffMin,
+        tiempoStr, estado, estadoColor, estadoBg, alerta });
+    });
+  });
+
+  const panel = document.getElementById('panel-en-tienda');
+  const tbody = document.getElementById('en-tienda-tbody');
+  const count = document.getElementById('en-tienda-count');
+
+  if (!filas.length) {
+    panel.style.display = 'none';
+    return;
+  }
+
+  panel.style.display = 'block';
+  count.textContent = filas.length + ' vehículo' + (filas.length!==1?'s':'') + ' en tienda';
+
+  // Ordenar por tiempo en tienda descendente
+  filas.sort((a,b) => b.diffMin - a.diffMin);
+
+  tbody.innerHTML = filas.map((f,i) => `<tr style="background:${i%2===0?'white':'#F8F7F4'};${f.alerta?'border-left:3px solid #E24B4A':''}">
+    <td style="padding:5px 8px;font-weight:700;color:#1E2D3D;white-space:nowrap">${f.placa||'—'}</td>
+    <td style="padding:5px 8px;color:#1E2D3D;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${f.tienda||''}">${f.tienda||'—'}</td>
+    <td style="padding:5px 8px;font-weight:700;color:${f.alerta?'#E24B4A':f.diffMin>30?'#BA7517':'#1D9E75'};white-space:nowrap">${f.tiempoStr}${f.alerta?' ⚠️':''}</td>
+    <td style="padding:5px 8px"><span style="background:${f.estadoBg};color:${f.estadoColor};padding:2px 6px;border-radius:8px;font-size:9px;font-weight:600;white-space:nowrap">${f.estado}</span></td>
+  </tr>`).join('');
+}
 
 function renderSidebar(){
   const body=document.getElementById('sidebar-body');

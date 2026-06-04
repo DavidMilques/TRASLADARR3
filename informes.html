@@ -49,7 +49,7 @@ tr:hover td{background:var(--bg)}
 </head>
 <body>
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbxXaVjAODrgEsepg1CvKRVTtqbhpUgsL5fqeu3O6ApQHHj0C_ADukLcSY2dkRwR7y2j/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxDXvZYy27Z0dGlhGLlEkykpoWfpP_ia9jwvfRu9y7jfDnAL-rEOySV3DL8FqhyDUoT/exec';
 const DASH_URL = 'https://davidmilques.github.io/TRASLADARR3/dashboard.html';
 const STATS_URL = 'https://davidmilques.github.io/TRASLADARR3/estadisticas.html';
 let datos = null;
@@ -142,9 +142,9 @@ let tabActivo = 'servicio';
       </div>
       <div class="tbl-wrap"><table>
         <thead><tr>
-          <th>Fecha</th><th>Placa</th><th>Plataforma</th><th>Tipo</th>
+          <th>Placa</th><th>Conductor</th><th>Plataforma</th><th>Tipo</th>
           <th>Hora salida</th><th>T. Ruta</th><th>H. Est. Retorno</th>
-          <th>Hora</th><th>T. Retorno</th>
+          <th>Hora</th><th>T. Retorno</th><th>Estado</th>
         </tr></thead>
         <tbody id="retornos-tbody"></tbody>
       </table></div>
@@ -446,29 +446,39 @@ function renderRetornos() {
   const rows = datos.retornos;
   // Resumen
   const total     = rows.length;
-  const conEst    = rows.filter(r=>r.hEstRetorno).length;
-  const sinSalida = total - rows.filter(r=>r.horaSalida).length;
+  const cargando  = rows.filter(r=>r.estado==='Cargando').length;
+  const conEst    = rows.filter(r=>r.hEstRetorno&&r.hEstRetorno!=='—').length;
   document.getElementById('sum-retornos').innerHTML = `
-    <div class="scard"><div class="sval">${total}</div><div class="slbl">Despachos</div></div>
-    <div class="scard"><div class="sval" style="color:var(--green)">${conEst}</div><div class="slbl">Con retorno estimado</div></div>
-    <div class="scard"><div class="sval" style="color:var(--gray)">${total-conEst}</div><div class="slbl">Sin tramo retorno</div></div>`;
+    <div class="scard"><div class="sval">${total}</div><div class="slbl">Placas únicas</div></div>
+    <div class="scard"><div class="sval" style="color:var(--blue)">${conEst}</div><div class="slbl">Con retorno estimado</div></div>
+    <div class="scard"><div class="sval" style="color:var(--amber)">${cargando}</div><div class="slbl">En cargue</div></div>
+    <div class="scard"><div class="sval" style="color:var(--gray)">${total-conEst-cargando}</div><div class="slbl">Sin tramo retorno</div></div>`;
   // Tabla
   const tbody = document.getElementById('retornos-tbody');
   if (!rows.length) {
     tbody.innerHTML='<tr><td colspan="9" class="empty">Sin datos — genera el informe primero</td></tr>';
     return;
   }
-  tbody.innerHTML = rows.map(r=>`<tr>
-    <td>${r.fecha||'—'}</td>
-    <td style="font-weight:700">${r.placa||'—'}</td>
-    <td>${r.plataforma||'—'}</td>
-    <td>${r.tipo||'—'}</td>
-    <td style="font-weight:600">${r.horaSalida||'—'}</td>
-    <td>${r.tRuta||'—'}</td>
-    <td style="font-weight:600;color:var(--blue-t)">${r.hEstRetorno||'—'}</td>
-    <td style="font-weight:700;font-size:15px;text-align:center">${r.hora!==''?r.hora:'—'}</td>
-    <td>${r.tRetorno||'—'}</td>
-  </tr>`).join('');
+  tbody.innerHTML = rows.map(r=>{
+    const esCargando = r.estado === 'Cargando';
+    const bg = esCargando ? '#FAEEDA' : 'transparent';
+    return `<tr style="background:${bg}">
+      <td style="font-weight:700">${r.placa||'—'}</td>
+      <td>${r.conductor||'—'}</td>
+      <td>${r.plataforma||'—'}</td>
+      <td>${r.tipo||'—'}</td>
+      <td style="font-weight:600">${esCargando?'—':r.horaSalida||'—'}</td>
+      <td>${esCargando?'—':r.tRuta||'—'}</td>
+      <td style="font-weight:600;color:var(--blue-t)">${esCargando?'—':r.hEstRetorno||'—'}</td>
+      <td style="font-weight:700;font-size:15px;text-align:center">${esCargando?'—':r.hora!==''?r.hora:'—'}</td>
+      <td>${esCargando?'—':r.tRetorno||'—'}</td>
+      <td><span style="padding:3px 9px;border-radius:10px;font-size:10px;font-weight:600;
+        background:${esCargando?'#FAEEDA':r.hEstRetorno&&r.hEstRetorno!=='—'?'#E6F1FB':'#F1EFE8'};
+        color:${esCargando?'#633806':r.hEstRetorno&&r.hEstRetorno!=='—'?'#0C447C':'#5F5E5A'}">
+        ${esCargando?'Cargando':r.hEstRetorno&&r.hEstRetorno!=='—'?'En ruta':'Sin retorno'}
+      </span></td>
+    </tr>`;
+  }).join('');
 }
 
 async function cargarRetornos() {
