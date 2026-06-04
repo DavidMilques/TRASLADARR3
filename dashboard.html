@@ -144,29 +144,34 @@ let filtroFecha='', filtroEstado='', filtroConductor='', filtroPlaca='', filtroC
   <span style="font-size:11px;color:var(--gray);margin-left:auto" id="f-count"></span>
 </div>
 
+
+<!-- PANEL VEHÍCULOS EN TIENDA — debajo de métricas -->
+<div id="panel-en-tienda" style="display:none;margin:0 0 10px;background:white;border:1px solid #E0DDD6;border-radius:10px;overflow:hidden">
+  <div style="background:#0F2B5B;color:white;padding:8px 14px;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-size:12px;font-weight:600">🏪 Vehículos en tienda ahora</span>
+    <span id="en-tienda-count" style="background:rgba(255,255,255,.2);padding:2px 10px;border-radius:10px;font-size:11px;font-weight:600"></span>
+  </div>
+  <div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;font-size:11px">
+      <thead><tr style="background:#F4F6FA">
+        <th style="padding:6px 10px;text-align:left;font-size:9px;font-weight:600;color:#8899AA;border-bottom:2px solid #E0DDD6;white-space:nowrap">FECHA</th>
+        <th style="padding:6px 10px;text-align:left;font-size:9px;font-weight:600;color:#8899AA;border-bottom:2px solid #E0DDD6;white-space:nowrap">PLACA</th>
+        <th style="padding:6px 10px;text-align:left;font-size:9px;font-weight:600;color:#8899AA;border-bottom:2px solid #E0DDD6;white-space:nowrap">CONDUCTOR</th>
+        <th style="padding:6px 10px;text-align:left;font-size:9px;font-weight:600;color:#8899AA;border-bottom:2px solid #E0DDD6;white-space:nowrap">TIENDA</th>
+        <th style="padding:6px 10px;text-align:left;font-size:9px;font-weight:600;color:#8899AA;border-bottom:2px solid #E0DDD6;white-space:nowrap">LLEGADA</th>
+        <th style="padding:6px 10px;text-align:left;font-size:9px;font-weight:600;color:#8899AA;border-bottom:2px solid #E0DDD6;white-space:nowrap">T. EN TIENDA</th>
+        <th style="padding:6px 10px;text-align:left;font-size:9px;font-weight:600;color:#8899AA;border-bottom:2px solid #E0DDD6;white-space:nowrap">ESTADO</th>
+      </tr></thead>
+      <tbody id="en-tienda-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
 <div class="layout">
   <div class="sidebar">
     <div class="sidebar-hdr">
       <span id="sidebar-count">Despachos</span>
       <span id="nov-badge" style="display:none" class="badge b-novedad pulse"></span>
-    </div>
-    <!-- Panel vehículos en tienda -->
-    <div id="panel-en-tienda" style="display:none;border-bottom:1px solid #E0DDD6">
-      <div style="background:#0F2B5B;color:white;padding:8px 12px;display:flex;justify-content:space-between;align-items:center">
-        <span style="font-size:11px;font-weight:600">🏪 En tienda ahora</span>
-        <span id="en-tienda-count" style="background:rgba(255,255,255,.2);padding:1px 7px;border-radius:10px;font-size:10px;font-weight:600"></span>
-      </div>
-      <div style="overflow-x:auto;max-height:220px;overflow-y:auto">
-        <table style="width:100%;border-collapse:collapse;font-size:11px">
-          <thead><tr style="background:#F4F6FA;position:sticky;top:0">
-            <th style="padding:5px 8px;text-align:left;font-size:9px;font-weight:600;color:#8899AA;border-bottom:1px solid #E0DDD6;white-space:nowrap">PLACA</th>
-            <th style="padding:5px 8px;text-align:left;font-size:9px;font-weight:600;color:#8899AA;border-bottom:1px solid #E0DDD6;white-space:nowrap">TIENDA</th>
-            <th style="padding:5px 8px;text-align:left;font-size:9px;font-weight:600;color:#8899AA;border-bottom:1px solid #E0DDD6;white-space:nowrap">T. EN TIENDA</th>
-            <th style="padding:5px 8px;text-align:left;font-size:9px;font-weight:600;color:#8899AA;border-bottom:1px solid #E0DDD6;white-space:nowrap">ESTADO</th>
-          </tr></thead>
-          <tbody id="en-tienda-tbody"></tbody>
-        </table>
-      </div>
     </div>
     <div class="sidebar-body" id="sidebar-body"><div class="loading"><div class="spinner"></div>Cargando...</div></div>
   </div>
@@ -311,10 +316,13 @@ function renderEnTienda() {
   filas.sort((a,b) => b.diffMin - a.diffMin);
 
   tbody.innerHTML = filas.map((f,i) => `<tr style="background:${i%2===0?'white':'#F8F7F4'};${f.alerta?'border-left:3px solid #E24B4A':''}">
-    <td style="padding:5px 8px;font-weight:700;color:#1E2D3D;white-space:nowrap">${f.placa||'—'}</td>
-    <td style="padding:5px 8px;color:#1E2D3D;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${f.tienda||''}">${f.tienda||'—'}</td>
-    <td style="padding:5px 8px;font-weight:700;color:${f.alerta?'#E24B4A':f.diffMin>30?'#BA7517':'#1D9E75'};white-space:nowrap">${f.tiempoStr}${f.alerta?' ⚠️':''}</td>
-    <td style="padding:5px 8px"><span style="background:${f.estadoBg};color:${f.estadoColor};padding:2px 6px;border-radius:8px;font-size:9px;font-weight:600;white-space:nowrap">${f.estado}</span></td>
+    <td style="padding:6px 10px;color:#5F5E5A;white-space:nowrap">${f.fecha||'—'}</td>
+    <td style="padding:6px 10px;font-weight:700;color:#1E2D3D;white-space:nowrap">${f.placa||'—'}</td>
+    <td style="padding:6px 10px;color:#1E2D3D;white-space:nowrap">${f.conductor||'—'}</td>
+    <td style="padding:6px 10px;color:#1E2D3D;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${f.tienda||''}">${f.tienda||'—'}</td>
+    <td style="padding:6px 10px;font-weight:600;color:#185FA5;white-space:nowrap">${f.llegada||'—'}</td>
+    <td style="padding:6px 10px;font-weight:700;white-space:nowrap;color:${f.alerta?'#E24B4A':f.diffMin>30?'#BA7517':'#1D9E75'}">${f.tiempoStr}${f.alerta?' ⚠️':''}</td>
+    <td style="padding:6px 10px"><span style="background:${f.estadoBg};color:${f.estadoColor};padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600">${f.estado}</span></td>
   </tr>`).join('');
 }
 
