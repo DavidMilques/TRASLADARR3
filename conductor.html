@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#185FA5">
-<title>TRASLADAR R3 — Conductor</title>
+<title>TRASLADARR3 — Conductor</title>
 <style>
 :root{--blue:#185FA5;--blue-l:#E6F1FB;--blue-t:#0C447C;--green:#1D9E75;--green-l:#E1F5EE;--green-t:#085041;--amber:#BA7517;--amber-l:#FAEEDA;--amber-t:#633806;--red:#E24B4A;--red-l:#FCEBEB;--red-t:#791F1F;--gray:#5F5E5A;--gray-l:#F1EFE8;--gray-t:#2C2C2A;--border:#E0DDD6;--bg:#F8F7F4;--r:10px;--rs:6px}
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;-webkit-tap-highlight-color:transparent}
@@ -104,9 +104,47 @@ input[type=file]{display:none}
 /* TOAST */
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a18;color:white;padding:9px 18px;border-radius:20px;font-size:12px;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;max-width:90vw}
 .toast.show{opacity:1}
+/* PANTALLA BÚSQUEDA CONDUCTOR */
+.busqueda-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background:var(--blue)}
+.busqueda-card{background:white;border-radius:var(--r);padding:28px 24px;width:100%;max-width:380px;box-shadow:0 8px 32px rgba(0,0,0,.18)}
+.busqueda-logo{text-align:center;margin-bottom:20px}
+.busqueda-logo h1{font-size:24px;font-weight:700;color:white;margin-bottom:4px}
+.busqueda-logo p{font-size:12px;color:rgba(255,255,255,.7)}
+.busqueda-title{font-size:15px;font-weight:600;color:var(--gray-t);margin-bottom:4px}
+.busqueda-sub{font-size:12px;color:var(--gray);margin-bottom:16px}
+.busqueda-input{width:100%;padding:14px;border:2px solid var(--border);border-radius:var(--rs);font-size:20px;font-weight:600;text-align:center;letter-spacing:2px;outline:none;color:var(--gray-t)}
+.busqueda-input:focus{border-color:var(--blue)}
+.busqueda-btn{width:100%;padding:13px;background:var(--blue);color:white;border:none;border-radius:var(--rs);font-size:15px;font-weight:600;cursor:pointer;margin-top:12px}
+.busqueda-btn:disabled{opacity:.5;cursor:not-allowed}
+.busqueda-error{background:var(--red-l);border:1px solid var(--red);border-radius:var(--rs);padding:10px;font-size:12px;color:var(--red-t);margin-top:10px;display:none}
+.despacho-lista{margin-top:12px}
+.despacho-item{border:1px solid var(--border);border-radius:var(--rs);padding:12px;margin-bottom:8px;cursor:pointer;transition:all .2s;background:white}
+.despacho-item:hover{border-color:var(--blue);background:var(--blue-l)}
+.despacho-item .d-prot{font-size:14px;font-weight:700;color:var(--gray-t)}
+.despacho-item .d-info{font-size:11px;color:var(--gray);margin-top:3px}
+.despacho-item .d-estado{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;margin-top:4px}
 </style>
 </head>
 <body>
+
+<!-- PANTALLA BÚSQUEDA CONDUCTOR -->
+<div id="screen-busqueda" class="busqueda-wrap">
+  <div class="busqueda-logo">
+    <img src="logo.png" alt="Logo" style="max-height:50px;object-fit:contain;margin-bottom:8px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.3))"
+         onerror="this.style.display='none'">
+    <h1>FleteTrack</h1>
+    <p>Módulo del Conductor</p>
+  </div>
+  <div class="busqueda-card">
+    <div class="busqueda-title">Ingresa el número de placa</div>
+    <div class="busqueda-sub">El sistema buscará los despachos asignados a la placa hoy</div>
+    <input type="text" id="inp-cedula" class="busqueda-input" placeholder="Ej: ABC123"
+           style="text-transform:uppercase" maxlength="10" onkeydown="if(event.key==='Enter')buscarDespacho()" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9-]/g,'')">
+    <div class="busqueda-error" id="busqueda-error"></div>
+    <button class="busqueda-btn" id="btn-buscar" onclick="buscarDespacho()">Buscar despachos</button>
+    <div class="despacho-lista" id="despacho-lista" style="display:none"></div>
+  </div>
+</div>
 
 <div class="hdr">
   <h1 id="hdr-titulo">FleteTrack</h1>
@@ -339,7 +377,7 @@ input[type=file]{display:none}
 // ================================================================
 //  CONFIG
 // ================================================================
-const API_URL      = 'https://script.google.com/macros/s/AKfycbxDXvZYy27Z0dGlhGLlEkykpoWfpP_ia9jwvfRu9y7jfDnAL-rEOySV3DL8FqhyDUoT/exec';
+const API_URL      = 'https://script.google.com/macros/s/AKfycbxBwwOtBEJsJWQqdLtjm3vJJn-_32J4IZGkC1czMw6__hlI04ztQHbfwtKzPzT6EDEz/exec';
 const params       = new URLSearchParams(location.search);
 const DESPACHO_ID  = params.get('id') || 'D-DEMO';
 const ES_DEMO      = params.get('demo') === '1' || !params.get('id');
@@ -711,6 +749,66 @@ async function enviarNovedadRuta() {
     setTimeout(() => { confNr.style.display = 'none'; }, 8000);
   }
   toast('Novedad enviada al operador');
+}
+
+async function buscarDespacho() {
+  const placa = document.getElementById('inp-cedula').value.trim().toUpperCase();
+  const err   = document.getElementById('busqueda-error');
+  const btn   = document.getElementById('btn-buscar');
+  const lista = document.getElementById('despacho-lista');
+  if (!placa) { mostrarError('Ingresa el número de placa'); return; }
+  err.style.display = 'none';
+  lista.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'Buscando...';
+  try {
+    const r = await fetch(`${API_URL}?action=buscarPorPlaca&placa=${encodeURIComponent(placa)}`);
+    const d = await r.json();
+    if (d.error) { mostrarError(d.error); btn.disabled=false; btn.textContent='Buscar despachos'; return; }
+    if (!d.despachos||d.despachos.length===0) {
+      mostrarError(`No se encontraron despachos para la placa ${placa} hoy.`);
+      btn.disabled=false; btn.textContent='Buscar despachos'; return;
+    }
+    if (d.despachos.length===1) {
+      if (d.despachos[0].estadoCargue==='Completado') {
+        mostrarError(`El viaje de la placa ${placa} (Protocolo ${d.despachos[0].protocolo}) ya fue completado hoy.`);
+        btn.disabled=false; btn.textContent='Buscar despachos'; return;
+      }
+      seleccionarDespacho(d.despachos[0]); return;
+    }
+    lista.style.display='block';
+    lista.innerHTML=`<div style="font-size:12px;font-weight:600;color:var(--gray);margin-bottom:8px">Placa ${placa} — Selecciona el despacho:</div>`+
+      d.despachos.map(dp=>{
+        const completado = dp.estadoCargue==='Completado';
+        const ec = completado ? 'background:#E1F5EE;color:#085041' :
+          ['En ruta','En retorno'].includes(dp.estadoCargue) ? 'background:#FEF3E2;color:#633806' :
+          'background:#E6F1FB;color:#0C447C';
+        const bloqueado = completado ? 'opacity:.55;cursor:not-allowed;pointer-events:none' : 'cursor:pointer';
+        const onclick   = completado ? '' : `onclick='seleccionarDespacho(${JSON.stringify(dp)})'`;
+        return `<div class="despacho-item" style="${bloqueado}" ${onclick}>
+          <div class="d-prot">Protocolo ${dp.protocolo}${completado?' <span style="font-size:10px;font-weight:500;color:#085041">✓ Viaje completado</span>':''}</div>
+          <div class="d-info">${dp.conductor||'—'} · ${dp.cedi||'—'} · ${dp.turno||'—'}</div>
+          <span class="d-estado" style="${ec}">${dp.estadoCargue}</span>
+          ${completado?'<div style="font-size:10px;color:#085041;margin-top:4px">Este viaje ya fue completado — no permite modificaciones</div>':''}
+        </div>`;
+      }).join('');
+    btn.disabled=false; btn.textContent='Buscar despachos';
+  } catch(e) {
+    mostrarError('Error de conexión. Intenta de nuevo.');
+    btn.disabled=false; btn.textContent='Buscar despachos';
+  }
+}
+
+function seleccionarDespacho(dp) {
+  document.getElementById('screen-busqueda').style.display='none';
+  document.querySelector('.hdr').style.display='';
+  document.getElementById('steps-bar').style.display='';
+  document.querySelector('.content').style.display='';
+  despacho=dp; lsSet({despacho}); iniciarUI();
+}
+
+function mostrarError(msg) {
+  const err=document.getElementById('busqueda-error');
+  err.textContent=msg; err.style.display='block';
 }
 
 // ================================================================
