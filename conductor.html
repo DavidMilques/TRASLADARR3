@@ -377,7 +377,7 @@ input[type=file]{display:none}
 // ================================================================
 //  CONFIG
 // ================================================================
-const API_URL      = 'https://script.google.com/macros/s/AKfycbxBwwOtBEJsJWQqdLtjm3vJJn-_32J4IZGkC1czMw6__hlI04ztQHbfwtKzPzT6EDEz/exec';
+const API_URL      = 'https://script.google.com/macros/s/AKfycbyuQOWNu6u8RhoVlg-izHVWbID9lMZnShJwL04KDLweMFVVtDTa9wHP43imYdNyqWVl/exec';
 const params       = new URLSearchParams(location.search);
 const DESPACHO_ID  = params.get('id') || 'D-DEMO';
 const ES_DEMO      = params.get('demo') === '1' || !params.get('id');
@@ -415,8 +415,8 @@ async function iniciar() {
     if (fc) fc.style.display = 'block';
     iniciarUI(); // render instantáneo sin esperar red
   }
-  // Modo demo — no llama a la API
-  if (ES_DEMO && !despacho) {
+  // Modo demo explícito (?demo=1) — no llama a la API
+  if (ES_DEMO && params.get('demo')==='1' && !despacho) {
     despacho = demoDespacho();
     lsSet({ despacho });
     const lc = document.getElementById('load-cargue');
@@ -458,10 +458,20 @@ async function iniciar() {
     despacho = d.despacho;
     lsSet({ despacho });
   } catch(e) {
-    if (!despacho) { despacho = demoDespacho(); }
     if (e.name === 'AbortError') {
-      toast('Servidor lento — mostrando datos guardados');
+      if (!despacho) {
+        // Sin datos locales y timeout — mostrar error en pantalla
+        const lc = document.getElementById('load-cargue');
+        if (lc) lc.innerHTML = '<div style="text-align:center;padding:30px;color:#BA7517"><div style="font-size:24px;margin-bottom:8px">⏱</div><div style="font-size:13px;font-weight:600">Servidor lento</div><div style="font-size:11px;color:#5F5E5A;margin-top:6px">Espera unos segundos y recarga la página</div></div>';
+        return;
+      }
+      toast('Servidor lento — usando datos guardados');
     } else {
+      if (!despacho) {
+        const lc = document.getElementById('load-cargue');
+        if (lc) lc.innerHTML = '<div style="text-align:center;padding:30px;color:#E24B4A"><div style="font-size:24px;margin-bottom:8px">⚠️</div><div style="font-size:13px;font-weight:600">Sin conexión</div><div style="font-size:11px;color:#5F5E5A;margin-top:6px">Verifica tu internet y recarga la página</div></div>';
+        return;
+      }
       toast('Sin conexión — usando datos guardados');
     }
   }
@@ -761,7 +771,11 @@ async function buscarDespacho() {
   lista.style.display = 'none';
   btn.disabled = true; btn.textContent = 'Buscando...';
   try {
-    const r = await fetch(`${API_URL}?action=buscarPorPlaca&placa=${encodeURIComponent(placa)}`);
+    // Timeout de 20 segundos
+    const ctrl = new AbortController();
+    const tid  = setTimeout(()=>ctrl.abort(), 20000);
+    const r = await fetch(`${API_URL}?action=buscarPorPlaca&placa=${encodeURIComponent(placa)}`, {signal:ctrl.signal});
+    clearTimeout(tid);
     const d = await r.json();
     if (d.error) { mostrarError(d.error); btn.disabled=false; btn.textContent='Buscar despachos'; return; }
     if (!d.despachos||d.despachos.length===0) {
@@ -793,7 +807,11 @@ async function buscarDespacho() {
       }).join('');
     btn.disabled=false; btn.textContent='Buscar despachos';
   } catch(e) {
-    mostrarError('Error de conexión. Intenta de nuevo.');
+    if (e.name==='AbortError') {
+      mostrarError('El servidor tardó demasiado. Espera unos segundos e intenta de nuevo.');
+    } else {
+      mostrarError('Sin conexión. Verifica tu internet e intenta de nuevo.');
+    }
     btn.disabled=false; btn.textContent='Buscar despachos';
   }
 }
