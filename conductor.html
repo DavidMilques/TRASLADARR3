@@ -698,6 +698,8 @@ function selNov(el, tipo) {
 }
 
 async function enviarNovedadCargue() {
+  const btnNc = document.querySelector('#form-nc .hora-btn.amber');
+  if (btnNc) { btnNc.disabled=true; btnNc.textContent='Enviando...'; }
   const vals = {
     'PALLET EN RESERVA':       parseInt(document.getElementById('nc-res').value)||0,
     'ESTIBAS NO LOCALIZADAS':  parseInt(document.getElementById('nc-est').value)||0,
@@ -706,7 +708,10 @@ async function enviarNovedadCargue() {
     'PALLET POR REMONTES':     parseInt(document.getElementById('nc-rem').value)||0,
     'CONTENEDORES':            parseInt(document.getElementById('nc-con').value)||0
   };
-  if (!Object.values(vals).some(v => v > 0)) { toast('Ingresa al menos un valor > 0'); return; }
+  if (!Object.values(vals).some(v => v > 0)) {
+    if (btnNc) { btnNc.disabled=false; btnNc.textContent='Registrar novedades de cargue'; }
+    toast('Ingresa al menos un valor > 0'); return;
+  }
   // Esperar primera foto para incluir URL en Telegram
   const fotosNc = (fotosMap['nc']||[]).filter(Boolean);
   let fotoUrlNc = null;
@@ -732,6 +737,9 @@ async function enviarNovedadRuta() {
   if (!novTipo) { toast('Selecciona el tipo de novedad'); return; }
   const desc = document.getElementById('nr-desc').value.trim();
   if (!desc) { toast('Escribe una descripción'); return; }
+  // Deshabilitar botón inmediatamente para evitar doble envío
+  const btnNr = document.querySelector('#sub-nr .hora-btn.amber');
+  if (btnNr) { btnNr.disabled=true; btnNr.textContent='Enviando...'; }
   // Esperar la primera foto para incluir la URL en el reporte de Telegram
   const fotosNr = (fotosMap['nr']||[]).filter(Boolean);
   let fotoUrl = null;
@@ -750,14 +758,16 @@ async function enviarNovedadRuta() {
   document.querySelectorAll('.nov-tipo').forEach(n => n.classList.remove('sel'));
   novTipo = '';
   fotosMap['nr'] = []; actualizarFotoCount('nr');
-  // Mostrar confirmación visual
+  // Mostrar confirmación y rehabilitar botón para nueva novedad
   const confNr = document.getElementById('conf-novedad-ruta');
   if (confNr) {
     confNr.style.display = 'block';
-    confNr.innerHTML = `<strong>✓ Novedad enviada correctamente</strong><br>
-      <span style="font-size:11px">El operador fue notificado. Si necesitas reportar otra novedad puedes hacerlo abajo.</span>`;
+    confNr.innerHTML = '<strong>✓ Novedad enviada correctamente</strong><br>' +
+      '<span style="font-size:11px">El operador fue notificado. Si necesitas reportar <u>otra</u> novedad diferente puedes hacerlo abajo.</span>';
     setTimeout(() => { confNr.style.display = 'none'; }, 8000);
   }
+  // Rehabilitar botón para permitir nueva novedad
+  if (btnNr) { btnNr.disabled=false; btnNr.textContent='Enviar novedad al operador'; }
   toast('Novedad enviada al operador');
 }
 
