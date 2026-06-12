@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#185FA5">
-<title>TRASLADARR3 — Conductor</title>
+<title>FleteTrack — Conductor</title>
 <style>
 :root{--blue:#185FA5;--blue-l:#E6F1FB;--blue-t:#0C447C;--green:#1D9E75;--green-l:#E1F5EE;--green-t:#085041;--amber:#BA7517;--amber-l:#FAEEDA;--amber-t:#633806;--red:#E24B4A;--red-l:#FCEBEB;--red-t:#791F1F;--gray:#5F5E5A;--gray-l:#F1EFE8;--gray-t:#2C2C2A;--border:#E0DDD6;--bg:#F8F7F4;--r:10px;--rs:6px}
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;-webkit-tap-highlight-color:transparent}
@@ -404,6 +404,16 @@ window.addEventListener('unhandledrejection', e => {
 
 
 async function iniciar() {
+  // Si no hay ?id= y no es demo explícito → mostrar búsqueda y salir
+  if (!params.get('id') && params.get('demo') !== '1') {
+    document.getElementById('screen-busqueda').style.display = 'flex';
+    document.querySelector('.hdr').style.display = 'none';
+    document.getElementById('steps-bar').style.display = 'none';
+    document.querySelector('.content').style.display = 'none';
+    try { localStorage.removeItem(LS_KEY); } catch(e) {}
+    despacho = null;
+    return; // No continuar — no cargar API ni demo
+  }
   const local = lsGet();
   // Mostrar UI INMEDIATAMENTE desde localStorage si existe
   if (local?.despacho) {
