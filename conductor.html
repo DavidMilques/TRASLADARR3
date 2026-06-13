@@ -404,20 +404,28 @@ window.addEventListener('unhandledrejection', e => {
 
 
 async function iniciar() {
-  // Si no hay ?id= y no es demo explícito → mostrar búsqueda y salir
-  if (!params.get('id') && params.get('demo') !== '1') {
+  const idUrl = params.get('id');
+
+  // Sin ?id= y sin ?demo=1 → pantalla de búsqueda por placa
+  if (!idUrl && params.get('demo') !== '1') {
     document.getElementById('screen-busqueda').style.display = 'flex';
     document.querySelector('.hdr').style.display = 'none';
     document.getElementById('steps-bar').style.display = 'none';
     document.querySelector('.content').style.display = 'none';
     try { localStorage.removeItem(LS_KEY); } catch(e) {}
     despacho = null;
-    return; // No continuar — no cargar API ni demo
+    return;
   }
+
+  // Con ?id= → limpiar localStorage si es un despacho diferente
   const local = lsGet();
+  if (idUrl && local?.despacho && local.despacho.id !== idUrl) {
+    try { localStorage.removeItem(LS_KEY); } catch(e) {}
+  }
+  const localActual = lsGet();
   // Mostrar UI INMEDIATAMENTE desde localStorage si existe
-  if (local?.despacho) {
-    despacho = local.despacho;
+  if (localActual?.despacho) {
+    despacho = localActual.despacho;
     // Ocultar spinner de carga inmediatamente
     const lc = document.getElementById('load-cargue');
     const fc = document.getElementById('form-cargue');
@@ -451,9 +459,9 @@ async function iniciar() {
     const d = await r.json();
     if (d.error) throw new Error(d.error);
     // Merge: local gana en horas intermedias
-    if (local?.despacho?.tiendas) {
+    if (localActual?.despacho?.tiendas) {
       d.despacho.tiendas = d.despacho.tiendas.map(t => {
-        const lt = local.despacho.tiendas.find(x => x.numero === t.numero) || {};
+        const lt = localActual.despacho.tiendas.find(x => x.numero === t.numero) || {};
         return {
           ...t,
           horaLlegada:    lt.horaLlegada    || t.horaLlegada,
