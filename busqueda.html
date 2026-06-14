@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="theme-color" content="#185FA5">
+<title>TRASLADARR3 — Buscar despacho</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+body{background:#185FA5;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.wrap{width:100%;max-width:400px}
+.logo{text-align:center;margin-bottom:24px}
+.logo img{max-height:55px;object-fit:contain;margin-bottom:10px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.3))}
+.logo h1{font-size:26px;font-weight:700;color:white}
+.logo p{font-size:12px;color:rgba(255,255,255,.65);margin-top:3px}
+.card{background:white;border-radius:12px;padding:24px;box-shadow:0 8px 32px rgba(0,0,0,.18)}
+.title{font-size:15px;font-weight:600;color:#1E2D3D;margin-bottom:4px}
+.sub{font-size:12px;color:#5F5E5A;margin-bottom:16px}
+input{width:100%;padding:14px;border:2px solid #E0DDD6;border-radius:8px;font-size:22px;font-weight:700;text-align:center;letter-spacing:3px;outline:none;color:#1E2D3D;text-transform:uppercase}
+input:focus{border-color:#185FA5}
+.btn{width:100%;padding:13px;background:#185FA5;color:white;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;margin-top:12px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.error{background:#FCEBEB;border:1px solid #E24B4A;border-radius:8px;padding:10px;font-size:12px;color:#791F1F;margin-top:10px;display:none}
+.lista{margin-top:12px}
+.item{border:1px solid #E0DDD6;border-radius:8px;padding:12px;margin-bottom:8px;cursor:pointer;background:white;text-decoration:none;display:block}
+.item:hover{border-color:#185FA5;background:#E6F1FB}
+.item.bloqueado{opacity:.5;cursor:not-allowed;pointer-events:none}
+.item .prot{font-size:14px;font-weight:700;color:#1E2D3D}
+.item .info{font-size:11px;color:#5F5E5A;margin-top:3px}
+.item .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;margin-top:5px}
+.footer{text-align:center;font-size:11px;color:rgba(255,255,255,.4);margin-top:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">
+    <img src="logo.png" alt="Logo" onerror="this.style.display='none'">
+    <h1>FleteTrack</h1>
+    <p>Búsqueda de despacho por placa</p>
+  </div>
+  <div class="card">
+    <div class="title">Ingresa el número de placa</div>
+    <div class="sub">El sistema buscará los viajes pendientes asignados a esa placa</div>
+    <input type="text" id="inp-placa" placeholder="ABC123" maxlength="10"
+           oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9-]/g,'')"
+           onkeydown="if(event.key==='Enter')buscar()">
+    <div class="error" id="error-msg"></div>
+    <button class="btn" id="btn-buscar" onclick="buscar()">Buscar despachos</button>
+    <div class="lista" id="lista-despachos"></div>
+  </div>
+  <div class="footer">FleteTrack — Acceso por placa</div>
+</div>
+<script>
+const API_URL  = 'https://script.google.com/macros/s/AKfycbwK4818NIJbF6Erba4Vp09PEJIlQ96L21cq7nK1c0iquUHgEaHKLz2lKZWxJxb5p0l_/exec';
+const BASE_URL = 'https://davidmilques.github.io/TRASLADARR3/conductor.html';
+
+async function buscar() {
+  const placa = document.getElementById('inp-placa').value.trim().toUpperCase();
+  const err   = document.getElementById('error-msg');
+  const btn   = document.getElementById('btn-buscar');
+  const lista = document.getElementById('lista-despachos');
+  if (!placa) { mostrarError('Ingresa el número de placa'); return; }
+  err.style.display='none'; lista.innerHTML='';
+  btn.disabled=true; btn.textContent='Buscando...';
+  try {
+    const controller = new AbortController();
+    const tid = setTimeout(()=>controller.abort(), 20000);
+    const r   = await fetch(`${API_URL}?action=buscarPorPlaca&placa=${encodeURIComponent(placa)}`,
+      {signal:controller.signal});
+    clearTimeout(tid);
+    const d = await r.json();
+    if (d.error) { mostrarError(d.error); btn.disabled=false; btn.textContent='Buscar despachos'; return; }
+    if (!d.despachos||!d.despachos.length) {
+      mostrarError('No hay viajes pendientes para la placa '+placa+' hoy.');
+      btn.disabled=false; btn.textContent='Buscar despachos'; return;
+    }
+    // Si un solo despacho — ir directo
+    if (d.despachos.length===1) {
+      const dp=d.despachos[0];
+      window.location.href=`${BASE_URL}?id=${dp.id}&row=${dp.rowIndex}`;
+      return;
+    }
+    // Varios — mostrar lista
+    lista.innerHTML = d.despachos.map(dp=>{
+      const url=`${BASE_URL}?id=${dp.id}&row=${dp.rowIndex}`;
+      const ec=dp.estadoCargue==='Completado'?'background:#E1F5EE;color:#085041':
+        ['En ruta','En retorno'].includes(dp.estadoCargue)?'background:#FEF3E2;color:#633806':
+        'background:#E6F1FB;color:#0C447C';
+      return `<a class="item" href="${url}">
+        <div class="prot">Protocolo ${dp.protocolo}</div>
+        <div class="info">${dp.conductor||'—'} · ${dp.cedi||'—'} · ${dp.turno||'—'}</div>
+        <span class="badge" style="${ec}">${dp.estadoCargue}</span>
+      </a>`;
+    }).join('');
+    btn.disabled=false; btn.textContent='Buscar despachos';
+  } catch(e) {
+    if (e.name==='AbortError') mostrarError('El servidor tardó demasiado. Intenta de nuevo.');
+    else mostrarError('Sin conexión. Verifica tu internet.');
+    btn.disabled=false; btn.textContent='Buscar despachos';
+  }
+}
+
+function mostrarError(msg){
+  const err=document.getElementById('error-msg');
+  err.textContent=msg; err.style.display='block';
+}
+</script>
+</body>
+</html>
