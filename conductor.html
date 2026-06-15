@@ -104,47 +104,11 @@ input[type=file]{display:none}
 /* TOAST */
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a18;color:white;padding:9px 18px;border-radius:20px;font-size:12px;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;max-width:90vw}
 .toast.show{opacity:1}
-/* PANTALLA BÚSQUEDA CONDUCTOR */
-.busqueda-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background:var(--blue)}
-.busqueda-card{background:white;border-radius:var(--r);padding:28px 24px;width:100%;max-width:380px;box-shadow:0 8px 32px rgba(0,0,0,.18)}
-.busqueda-logo{text-align:center;margin-bottom:20px}
-.busqueda-logo h1{font-size:24px;font-weight:700;color:white;margin-bottom:4px}
-.busqueda-logo p{font-size:12px;color:rgba(255,255,255,.7)}
-.busqueda-title{font-size:15px;font-weight:600;color:var(--gray-t);margin-bottom:4px}
-.busqueda-sub{font-size:12px;color:var(--gray);margin-bottom:16px}
-.busqueda-input{width:100%;padding:14px;border:2px solid var(--border);border-radius:var(--rs);font-size:20px;font-weight:600;text-align:center;letter-spacing:2px;outline:none;color:var(--gray-t)}
-.busqueda-input:focus{border-color:var(--blue)}
-.busqueda-btn{width:100%;padding:13px;background:var(--blue);color:white;border:none;border-radius:var(--rs);font-size:15px;font-weight:600;cursor:pointer;margin-top:12px}
-.busqueda-btn:disabled{opacity:.5;cursor:not-allowed}
-.busqueda-error{background:var(--red-l);border:1px solid var(--red);border-radius:var(--rs);padding:10px;font-size:12px;color:var(--red-t);margin-top:10px;display:none}
-.despacho-lista{margin-top:12px}
-.despacho-item{border:1px solid var(--border);border-radius:var(--rs);padding:12px;margin-bottom:8px;cursor:pointer;transition:all .2s;background:white}
-.despacho-item:hover{border-color:var(--blue);background:var(--blue-l)}
-.despacho-item .d-prot{font-size:14px;font-weight:700;color:var(--gray-t)}
-.despacho-item .d-info{font-size:11px;color:var(--gray);margin-top:3px}
-.despacho-item .d-estado{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;margin-top:4px}
+
 </style>
 </head>
 <body>
 
-<!-- PANTALLA BÚSQUEDA CONDUCTOR -->
-<div id="screen-busqueda" class="busqueda-wrap">
-  <div class="busqueda-logo">
-    <img src="logo.png" alt="Logo" style="max-height:50px;object-fit:contain;margin-bottom:8px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.3))"
-         onerror="this.style.display='none'">
-    <h1>FleteTrack</h1>
-    <p>Módulo del Conductor</p>
-  </div>
-  <div class="busqueda-card">
-    <div class="busqueda-title">Ingresa el número de placa</div>
-    <div class="busqueda-sub">El sistema buscará los despachos asignados a la placa hoy</div>
-    <input type="text" id="inp-cedula" class="busqueda-input" placeholder="Ej: ABC123"
-           style="text-transform:uppercase" maxlength="10" onkeydown="if(event.key==='Enter')buscarDespacho()" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9-]/g,'')">
-    <div class="busqueda-error" id="busqueda-error"></div>
-    <button class="busqueda-btn" id="btn-buscar" onclick="buscarDespacho()">Buscar despachos</button>
-    <div class="despacho-lista" id="despacho-lista" style="display:none"></div>
-  </div>
-</div>
 
 <div class="hdr">
   <h1 id="hdr-titulo">FleteTrack</h1>
@@ -377,7 +341,7 @@ input[type=file]{display:none}
 // ================================================================
 //  CONFIG
 // ================================================================
-const API_URL      = 'https://script.google.com/macros/s/AKfycbwK4818NIJbF6Erba4Vp09PEJIlQ96L21cq7nK1c0iquUHgEaHKLz2lKZWxJxb5p0l_/exec';
+const API_URL      = 'https://script.google.com/macros/s/AKfycbwluug8gBF4C5LNQ-A663OCtllJtm64gCUbsJezwpKFHyG0FqNHjEVW9GTW4UatclGP/exec';
 const params       = new URLSearchParams(location.search);
 const DESPACHO_ID  = params.get('id') || 'D-DEMO';
 const ES_DEMO      = params.get('demo') === '1' || !params.get('id');
@@ -404,43 +368,10 @@ window.addEventListener('unhandledrejection', e => {
 
 
 async function iniciar() {
-  const idUrl = params.get('id');
-  const esDemo = params.get('demo') === '1';
-
-  // Sin ?id= → mostrar pantalla de búsqueda por placa y parar
-  if (!idUrl && !esDemo) {
-    document.getElementById('screen-busqueda').style.display = 'flex';
-    document.querySelector('.hdr').style.display = 'none';
-    document.getElementById('steps-bar').style.display = 'none';
-    document.querySelector('.content').style.display = 'none';
-    try { localStorage.removeItem(LS_KEY); } catch(e) {}
-    despacho = null;
-    return;
-  }
-
-  // ?demo=1 → cargar demo sin llamar API
-  if (esDemo) {
-    despacho = demoDespacho();
-    lsSet({ despacho });
-    document.getElementById('screen-busqueda').style.display = 'none';
-    iniciarUI();
-    toast('Modo demo');
-    return;
-  }
-
-  // ?id= → link directo, limpiar localStorage si es despacho diferente
-  try { 
-    const loc = lsGet();
-    if (loc?.despacho?.id && loc.despacho.id !== idUrl) {
-      localStorage.removeItem(LS_KEY);
-    }
-  } catch(e) {}
-
-  // Mostrar desde localStorage inmediatamente si existe el mismo despacho
   const local = lsGet();
-  if (local?.despacho?.id === idUrl) {
+  // Mostrar inmediatamente desde localStorage si hay datos
+  if (local?.despacho && DESPACHO_ID !== 'D-DEMO') {
     despacho = local.despacho;
-    document.getElementById('screen-busqueda').style.display = 'none';
     const lc = document.getElementById('load-cargue');
     const fc = document.getElementById('form-cargue');
     if (lc) lc.style.display = 'none';
@@ -448,23 +379,35 @@ async function iniciar() {
     iniciarUI();
   }
 
+  // Modo demo
+  if (ES_DEMO) {
+    despacho = demoDespacho();
+    lsSet({ despacho });
+    const lc = document.getElementById('load-cargue');
+    const fc = document.getElementById('form-cargue');
+    if (lc) lc.style.display = 'none';
+    if (fc) fc.style.display = 'block';
+    iniciarUI();
+    toast('Modo demo — datos de ejemplo');
+    return;
+  }
+
   // Cargar desde servidor
   try {
     const ROW_INDEX = params.get('row') || '';
     const urlApi = ROW_INDEX
-      ? `${API_URL}?action=getDespacho&id=${idUrl}&row=${ROW_INDEX}`
-      : `${API_URL}?action=getDespacho&id=${idUrl}`;
-    const ctrl = new AbortController();
-    const tid  = setTimeout(() => ctrl.abort(), 25000);
-    const r = await fetch(urlApi, { signal: ctrl.signal });
-    clearTimeout(tid);
+      ? `${API_URL}?action=getDespacho&id=${DESPACHO_ID}&row=${ROW_INDEX}`
+      : `${API_URL}?action=getDespacho&id=${DESPACHO_ID}`;
+    const controller = new AbortController();
+    const timeoutId  = setTimeout(() => controller.abort(), 25000);
+    const r = await fetch(urlApi, { signal: controller.signal });
+    clearTimeout(timeoutId);
     const d = await r.json();
     if (d.error) throw new Error(d.error);
-    // Merge horas intermedias del localStorage
-    const loc2 = lsGet();
-    if (loc2?.despacho?.tiendas) {
+    // Merge localStorage con datos del servidor
+    if (local?.despacho?.tiendas) {
       d.despacho.tiendas = d.despacho.tiendas.map(t => {
-        const lt = loc2.despacho.tiendas.find(x => x.numero === t.numero) || {};
+        const lt = local.despacho.tiendas.find(x => x.numero === t.numero) || {};
         return { ...t,
           horaLlegada:    lt.horaLlegada    || t.horaLlegada,
           horaInicioDesc: lt.horaInicioDesc || t.horaInicioDesc,
@@ -478,70 +421,11 @@ async function iniciar() {
     despacho = d.despacho;
     lsSet({ despacho });
   } catch(e) {
-    if (!despacho) {
-      const lc = document.getElementById('load-cargue');
-      if (lc) lc.innerHTML = '<div style="text-align:center;padding:30px;color:#E24B4A">' +
-        '<div style="font-size:24px;margin-bottom:8px">⚠️</div>' +
-        '<div style="font-size:13px;font-weight:600">No se pudo cargar el despacho</div>' +
-        '<div style="font-size:11px;color:#5F5E5A;margin-top:6px">Verifica tu conexión y recarga la página</div></div>';
-      return;
-    }
-    if (e.name !== 'AbortError') toast('Sin conexión — usando datos guardados');
+    if (!despacho) { despacho = demoDespacho(); toast('Sin conexión — modo demo'); }
+    else if (e.name === 'AbortError') toast('Servidor lento — usando datos guardados');
+    else toast('Error al actualizar — usando datos guardados');
   }
-  document.getElementById('screen-busqueda').style.display = 'none';
   iniciarUI();
-}
-async function buscarDespacho() {
-  const placa = (document.getElementById('inp-cedula').value||'').trim().toUpperCase();
-  const btn   = document.getElementById('btn-buscar');
-  const lista = document.getElementById('despacho-lista');
-  if (!placa) { mostrarError('Ingresa el número de placa'); return; }
-  document.getElementById('busqueda-error').style.display = 'none';
-  lista.style.display = 'none';
-  btn.disabled = true;
-  btn.textContent = 'Buscando... por favor espera';
-
-  try {
-    const r = await fetch(`${API_URL}?action=getDespachos`);
-    const d = await r.json();
-    if (d.error) throw new Error(d.error);
-
-    const encontrados = (d.despachos||[]).filter(dp =>
-      (dp.placa||'').toUpperCase().trim() === placa &&
-      dp.estadoCargue !== 'Completado'
-    );
-
-    if (!encontrados.length) {
-      mostrarError('No hay despachos pendientes para la placa ' + placa + ' hoy.');
-      btn.disabled=false; btn.textContent='Buscar despachos';
-      return;
-    }
-
-    if (encontrados.length === 1) {
-      seleccionarDespacho(encontrados[0]);
-      return;
-    }
-
-    lista.style.display = 'block';
-    lista.innerHTML = '<div style="font-size:12px;font-weight:600;color:var(--gray);margin-bottom:8px">Selecciona tu despacho:</div>' +
-      encontrados.map(function(dp) {
-        const ec = ['En ruta','En retorno'].includes(dp.estadoCargue)
-          ? 'background:#FEF3E2;color:#633806' : 'background:#E6F1FB;color:#0C447C';
-        return '<div class="despacho-item" data-id="' + dp.id + '" data-row="' + dp.rowIndex + '">' +
-          '<div class="d-prot">Protocolo ' + (dp.protocolo||'—') + '</div>' +
-          '<div class="d-info">' + (dp.conductor||'—') + ' · ' + (dp.cedi||'—') + ' · ' + (dp.turno||'—') + '</div>' +
-          '<span class="d-estado" style="' + ec + '">' + dp.estadoCargue + '</span></div>';
-      }).join('');
-    // Asignar onclick después de renderizar
-    lista.querySelectorAll('.despacho-item').forEach(function(el, i) {
-      el.onclick = function() { seleccionarDespacho(encontrados[i]); };
-    });
-    btn.disabled=false; btn.textContent='Buscar despachos';
-
-  } catch(e) {
-    mostrarError('Error de conexión. Verifica tu internet e intenta de nuevo.');
-    btn.disabled=false; btn.textContent='Buscar despachos';
-  }
 }
 
 
