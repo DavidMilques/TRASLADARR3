@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#185FA5">
-<title>TRASLADARR3 — Conductor</title>
+<title>TRASLADAR R3 — Conductor</title>
 <style>
 :root{--blue:#185FA5;--blue-l:#E6F1FB;--blue-t:#0C447C;--green:#1D9E75;--green-l:#E1F5EE;--green-t:#085041;--amber:#BA7517;--amber-l:#FAEEDA;--amber-t:#633806;--red:#E24B4A;--red-l:#FCEBEB;--red-t:#791F1F;--gray:#5F5E5A;--gray-l:#F1EFE8;--gray-t:#2C2C2A;--border:#E0DDD6;--bg:#F8F7F4;--r:10px;--rs:6px}
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;-webkit-tap-highlight-color:transparent}
@@ -104,11 +104,9 @@ input[type=file]{display:none}
 /* TOAST */
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a18;color:white;padding:9px 18px;border-radius:20px;font-size:12px;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;max-width:90vw}
 .toast.show{opacity:1}
-
 </style>
 </head>
 <body>
-
 
 <div class="hdr">
   <h1 id="hdr-titulo">FleteTrack</h1>
@@ -369,18 +367,18 @@ window.addEventListener('unhandledrejection', e => {
 
 async function iniciar() {
   const local = lsGet();
-  // Mostrar inmediatamente desde localStorage si hay datos
-  if (local?.despacho && DESPACHO_ID !== 'D-DEMO') {
+  // Mostrar UI INMEDIATAMENTE desde localStorage si existe
+  if (local?.despacho) {
     despacho = local.despacho;
+    // Ocultar spinner de carga inmediatamente
     const lc = document.getElementById('load-cargue');
     const fc = document.getElementById('form-cargue');
     if (lc) lc.style.display = 'none';
     if (fc) fc.style.display = 'block';
-    iniciarUI();
+    iniciarUI(); // render instantáneo sin esperar red
   }
-
-  // Modo demo
-  if (ES_DEMO) {
+  // Modo demo — no llama a la API
+  if (ES_DEMO && !despacho) {
     despacho = demoDespacho();
     lsSet({ despacho });
     const lc = document.getElementById('load-cargue');
@@ -391,24 +389,25 @@ async function iniciar() {
     toast('Modo demo — datos de ejemplo');
     return;
   }
-
-  // Cargar desde servidor
+  // Cargar desde servidor en paralelo
   try {
     const ROW_INDEX = params.get('row') || '';
     const urlApi = ROW_INDEX
       ? `${API_URL}?action=getDespacho&id=${DESPACHO_ID}&row=${ROW_INDEX}`
       : `${API_URL}?action=getDespacho&id=${DESPACHO_ID}`;
+    // Timeout de 15 segundos para no bloquear si hay lentitud
     const controller = new AbortController();
     const timeoutId  = setTimeout(() => controller.abort(), 25000);
     const r = await fetch(urlApi, { signal: controller.signal });
     clearTimeout(timeoutId);
     const d = await r.json();
     if (d.error) throw new Error(d.error);
-    // Merge localStorage con datos del servidor
+    // Merge: local gana en horas intermedias
     if (local?.despacho?.tiendas) {
       d.despacho.tiendas = d.despacho.tiendas.map(t => {
         const lt = local.despacho.tiendas.find(x => x.numero === t.numero) || {};
-        return { ...t,
+        return {
+          ...t,
           horaLlegada:    lt.horaLlegada    || t.horaLlegada,
           horaInicioDesc: lt.horaInicioDesc || t.horaInicioDesc,
           horaFinDesc:    lt.horaFinDesc    || t.horaFinDesc,
@@ -421,11 +420,673 @@ async function iniciar() {
     despacho = d.despacho;
     lsSet({ despacho });
   } catch(e) {
-    if (!despacho) { despacho = demoDespacho(); toast('Sin conexión — modo demo'); }
-    else if (e.name === 'AbortError') toast('Servidor lento — usando datos guardados');
-    else toast('Error al actualizar — usando datos guardados');
+    if (!despacho) { despacho = demoDespacho(); }
+    if (e.name === 'AbortError') {
+      toast('Servidor lento — mostrando datos guardados');
+    } else {
+      toast('Sin conexión — usando datos guardados');
+    }
   }
-  iniciarUI();
+  iniciarUI(); // actualizar con datos del servidor si cambiaron
 }
 
+function iniciarUI() {
+  if (!despacho) {
+    // Sin despacho — mostrar error en pantalla
+    const lc = document.getElementById('load-cargue');
+    if (lc) lc.innerHTML = '<div style="text-align:center;padding:30px;color:#E24B4A"><div style="font-size:24px;margin-bottom:8px">⚠️</div><div style="font-size:13px;font-weight:600">No se pudo cargar el despacho</div><div style="font-size:11px;color:#5F5E5A;margin-top:6px">Verifica que el link tenga ?id= y ?row= correctos</div></div>';
+    return;
+  }
+  try {
+    // Si está COMPLETADO → mostrar pantalla de solo resumen
+    if (despacho.estadoCargue === 'Completado') {
+      mostrarCompletado(); return;
+    }
+    // Render header
+    const elTit = document.getElementById('hdr-titulo');
+  if (elTit) {
+    if (ES_DEMO) elTit.innerHTML = 'Protocolo ' + (despacho.protocolo||'') + ' <span style="background:#E07B12;color:white;font-size:10px;padding:2px 7px;border-radius:10px;vertical-align:middle;font-weight:600">DEMO</span>';
+    else elTit.textContent = 'Protocolo ' + (despacho.protocolo||'');
+  }
+    const elSub = document.getElementById('hdr-sub'); if(elSub) elSub.textContent = `${despacho.conductor} · ${despacho.placa}`;
+    // Render cargue
+    renderCargue();
+    // Habilitar steps según estado
+    actualizarSteps();
+    const lc = document.getElementById('load-cargue');
+    const fc = document.getElementById('form-cargue');
+    if (lc) lc.style.display = 'none';
+    if (fc) fc.style.display = 'block';
+    // Render novedades select
+    renderSelectTiendas();
+    // Si ya está en ruta o más, mostrar como confirmado
+    if (['En ruta','En retorno','Completado','Novedad'].includes(despacho.estadoCargue)) {
+      marcarCargueConfirmado();
+    }
+  } catch(e) {
+    console.error('Error en iniciarUI:', e);
+    const lc = document.getElementById('load-cargue');
+    if (lc) lc.innerHTML = '<div style="text-align:center;padding:30px;color:#E24B4A"><div style="font-size:24px;margin-bottom:8px">⚠️</div><div style="font-size:13px;font-weight:600">Error al cargar: ' + e.message + '</div></div>';
+  }
+}
 
+// ================================================================
+//  STEPS / NAVEGACIÓN
+// ================================================================
+function actualizarSteps() {
+  const estado = despacho.estadoCargue;
+  const enRuta = ['En ruta','En retorno','Completado','Novedad'].includes(estado);
+  setStep('cargue',  true,  despacho.horaSalidaCedi ? 'done' : 'active');
+  setStep('novedad', enRuta, enRuta ? 'active' : 'blocked');
+  setStep('tiendas', enRuta, enRuta ? 'active' : 'blocked');
+  const todasListas = despacho.tiendas.length > 0 && despacho.tiendas.every(t => t.cerrada);
+  setStep('retorno', todasListas, todasListas ? 'active' : 'blocked');
+}
+
+function setStep(id, clickable, cls) {
+  const el = document.getElementById(`step-${id}`);
+  el.className = `step ${cls}`;
+  el.onclick = clickable ? () => irPantalla(id) : null;
+  el.style.cursor = clickable ? 'pointer' : 'default';
+}
+
+function irPantalla(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(`screen-${name}`).classList.add('active');
+  document.querySelectorAll('.step').forEach(s => { if(s.classList.contains('blocked')) return; });
+  // Actualizar step activo visualmente
+  ['cargue','novedad','tiendas','retorno'].forEach(n => {
+    const el = document.getElementById(`step-${n}`);
+    if (!el.classList.contains('done') && !el.classList.contains('blocked')) {
+      el.classList.toggle('active', n === name);
+    }
+  });
+  if (name === 'tiendas') renderListaTiendas();
+  if (name === 'retorno') renderResumenRetorno();
+}
+
+// ================================================================
+//  RENDER CARGUE
+// ================================================================
+function renderCargue() {
+  document.getElementById('f-conductor').textContent = despacho.conductor;
+  document.getElementById('f-placa').textContent     = despacho.placa;
+  document.getElementById('f-protocolo').textContent = despacho.protocolo;
+  document.getElementById('f-cedi').textContent      = despacho.cedi || '—';
+  document.getElementById('f-turno').textContent     = despacho.turno || '—';
+  document.getElementById('f-ofrec').textContent     = despacho.horaOfrecimiento || '—';
+  document.getElementById('f-entrada').textContent   = despacho.horaEntradaCedi  || '—';
+  document.getElementById('f-cargue').textContent    = despacho.horaCargue       || '—';
+  document.getElementById('f-salida').textContent    = despacho.horaSalidaCedi   || '—';
+  // Restaurar inicio cargue si ya fue registrado
+  if (despacho.horaInicioCargue) {
+    const okEl  = document.getElementById('inicio-cargue-ok');
+    const valEl = document.getElementById('inicio-cargue-val');
+    const btnEl = document.getElementById('btn-inicio-cargue');
+    if (okEl)  okEl.style.display  = 'flex';
+    if (valEl) valEl.textContent   = despacho.horaInicioCargue;
+    if (btnEl) btnEl.style.display = 'none';
+  }
+  const muEl=document.getElementById('f-muelle'); if(muEl){ if(muEl.tagName==='INPUT') muEl.value=despacho.muelle||''; else muEl.textContent=despacho.muelle||'—'; }
+  renderPallets();
+}
+
+function renderPallets() {
+  if (!despacho.tiendas.length) return;
+  const card   = document.getElementById('card-pallets-tienda');
+  const campos = document.getElementById('pallets-campos');
+  card.style.display = 'block';
+  const bloqueado = cargueConfirmado;
+  campos.innerHTML = despacho.tiendas.map(t => `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:8px;background:var(--bg);border-radius:var(--rs);border:1px solid var(--border)">
+      <div style="flex:2;min-width:0">
+        <div style="font-size:12px;font-weight:500">T${t.numero} · ${t.nombre}</div>
+        <div style="font-size:10px;color:var(--gray)">${t.descripcion || ''}</div>
+      </div>
+      <div style="flex:0 0 80px;text-align:center">
+        <div style="font-size:9px;color:var(--gray);margin-bottom:2px">ESTIBAS</div>
+        ${bloqueado
+          ? `<div style="font-size:18px;font-weight:700;color:var(--blue-t);text-align:center">${t.palletsTienda || 0}</div>`
+          : `<input type="number" id="pallet-t${t.numero}" min="0" value="${t.palletsTienda || 0}"
+               style="width:100%;padding:6px;border:1px solid var(--border);border-radius:var(--rs);font-size:18px;font-weight:700;text-align:center;background:var(--blue-l);color:var(--blue-t)"
+               oninput="onPalletChange(${t.numero},this.value)">`
+        }
+      </div>
+    </div>`).join('');
+  actualizarTotalPallets();
+}
+
+function onPalletChange(n, v) {
+  const t = despacho.tiendas.find(x => x.numero === n);
+  if (t) t.palletsTienda = parseInt(v) || 0;
+  actualizarTotalPallets();
+  lsSet({ despacho });
+}
+
+function actualizarTotalPallets() {
+  const total = despacho.tiendas.reduce((s, t) => s + (t.palletsTienda || 0), 0);
+  document.getElementById('f-pallet-total').textContent = total > 0 ? total : '—';
+}
+
+// ================================================================
+//  CONFIRMAR CARGUE
+// ================================================================
+async function registrarInicioCargue() {
+  const hora = getNow();
+  const btn  = document.getElementById('btn-inicio-cargue');
+  if (btn) { btn.disabled = true; btn.textContent = 'Registrando...'; }
+  // Guardar local inmediatamente
+  if (despacho) { despacho.horaInicioCargue = hora; lsSet({ despacho }); }
+  // Mostrar confirmación
+  const ok  = document.getElementById('inicio-cargue-ok');
+  const val = document.getElementById('inicio-cargue-val');
+  if (ok)  ok.style.display  = 'flex';
+  if (val) val.textContent   = hora;
+  if (btn) btn.style.display = 'none';
+  toast('Inicio de cargue registrado: ' + hora);
+  // Enviar al servidor
+  await apiPost({ action:'registrarInicioCargue', rowIndex:despacho.rowIndex,
+    horaInicioCargue: hora, protocolo:despacho.protocolo, placa:despacho.placa });
+}
+
+async function confirmarCargue() {
+  const btn = document.getElementById('btn-confirmar-cargue');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  // Leer pallets de los inputs
+  despacho.tiendas.forEach(t => {
+    const inp = document.getElementById(`pallet-t${t.numero}`);
+    if (inp) t.palletsTienda = parseInt(inp.value) || 0;
+  });
+  const totalPallet = despacho.tiendas.reduce((s,t) => s+(t.palletsTienda||0), 0);
+  lsSet({ despacho });
+  // Subir fotos cargue
+  const fotosCargue = fotosMap['cargue'] || [];
+  let fotoUrl = null;
+  if (fotosCargue.length > 0) {
+    const r = await subirFoto(fotosCargue[0], 'cargue');
+    fotoUrl = r;
+    // Subir el resto en paralelo sin bloquear
+    fotosCargue.slice(1).forEach(f => subirFoto(f, 'cargue'));
+  }
+  const pallets = despacho.tiendas.filter(t=>t.palletsTienda>0).map(t=>({numero:t.numero,cantidad:t.palletsTienda}));
+  await Promise.all([
+    apiPost({ action:'registrarCargue', rowIndex:despacho.rowIndex,
+      muelle: document.getElementById('f-muelle').value || despacho.muelle || '',
+      pallet: totalPallet, observaciones: document.getElementById('obs-cargue').value,
+      fotoUrl, protocolo:despacho.protocolo, placa:despacho.placa }),
+    pallets.length > 0 ? apiPost({ action:'registrarPalletsTienda',
+      rowIndex:despacho.rowIndex, pallets, protocolo:despacho.protocolo }) : Promise.resolve()
+  ]);
+  despacho.estadoCargue = 'En ruta';
+  lsSet({ despacho });
+  marcarCargueConfirmado();
+  actualizarSteps();
+  toast('Cargue confirmado — ¡Buen viaje!');
+  setTimeout(() => irPantalla('tiendas'), 1200);
+}
+
+function marcarCargueConfirmado() {
+  cargueConfirmado = true;
+  document.getElementById('btn-confirmar-cargue').style.display = 'none';
+  document.getElementById('banner-cargue-ok').style.display = 'block';
+  // Bloquear también el formulario de novedades de cargue si no se ha enviado
+  const formNc = document.getElementById('form-nc');
+  if (formNc) formNc.style.pointerEvents = 'none';
+  renderPallets();
+}
+
+// ================================================================
+//  NOVEDADES
+// ================================================================
+function showSubtab(tab) {
+  // sub-nc ya no existe en esta pantalla, solo sub-nr
+  const snr = document.getElementById('sub-nr');
+  if (snr) snr.style.display = 'block';
+}
+
+function selNov(el, tipo) {
+  document.querySelectorAll('.nov-tipo').forEach(n => n.classList.remove('sel'));
+  el.classList.add('sel'); novTipo = tipo;
+}
+
+async function enviarNovedadCargue() {
+  const vals = {
+    'PALLET EN RESERVA':       parseInt(document.getElementById('nc-res').value)||0,
+    'ESTIBAS NO LOCALIZADAS':  parseInt(document.getElementById('nc-est').value)||0,
+    'PALLET SIN VINIPEL':      parseInt(document.getElementById('nc-vin').value)||0,
+    'PALLET MAL CONFORMADAS':  parseInt(document.getElementById('nc-mal').value)||0,
+    'PALLET POR REMONTES':     parseInt(document.getElementById('nc-rem').value)||0,
+    'CONTENEDORES':            parseInt(document.getElementById('nc-con').value)||0
+  };
+  if (!Object.values(vals).some(v => v > 0)) { toast('Ingresa al menos un valor > 0'); return; }
+  // Esperar primera foto para incluir URL en Telegram
+  const fotosNc = (fotosMap['nc']||[]).filter(Boolean);
+  let fotoUrlNc = null;
+  if (fotosNc.length > 0) {
+    fotoUrlNc = await subirFoto(fotosNc[0], 'novedad_cargue_1');
+    fotosNc.slice(1).forEach((f,i) => subirFoto(f, `novedad_cargue_${i+2}`));
+  }
+  console.log('enviarNovedadCargue fotoUrlNc:', fotoUrlNc);
+  await apiPost({ action:'registrarNovedadCargue', rowIndex:despacho.rowIndex, fotoUrl:fotoUrlNc,
+    protocolo:despacho.protocolo, placa:despacho.placa, conductor:despacho.conductor,
+    fecha:despacho.fecha, dia:despacho.dia, turno:despacho.turno, valores:vals });
+  const bannerNc = document.getElementById('banner-nc-ok');
+  if (bannerNc) {
+    bannerNc.style.display = 'block';
+    bannerNc.innerHTML = `<strong>✓ Novedades de cargue registradas y enviadas al operador.</strong><br>
+      <span style="font-size:11px">El reporte fue enviado. No es necesario volver a registrar.</span>`;
+  }
+  document.getElementById('form-nc').style.display = 'none';
+  toast('Novedades de cargue registradas');
+}
+
+async function enviarNovedadRuta() {
+  if (!novTipo) { toast('Selecciona el tipo de novedad'); return; }
+  const desc = document.getElementById('nr-desc').value.trim();
+  if (!desc) { toast('Escribe una descripción'); return; }
+  // Esperar la primera foto para incluir la URL en el reporte de Telegram
+  const fotosNr = (fotosMap['nr']||[]).filter(Boolean);
+  let fotoUrl = null;
+  if (fotosNr.length > 0) {
+    toast('Subiendo foto...');
+    fotoUrl = await subirFoto(fotosNr[0], 'novedad_ruta_1');
+    // Subir el resto en paralelo sin bloquear
+    fotosNr.slice(1).forEach((f,i) => subirFoto(f, `novedad_ruta_${i+2}`));
+  }
+  console.log('enviarNovedadRuta fotoUrl:', fotoUrl);
+  await apiPost({ action:'registrarNovedad', rowIndex:despacho.rowIndex,
+    tipo:novTipo, descripcion:desc, fotoUrl,
+    tiendaAfectada: document.getElementById('nr-tienda').value,
+    protocolo:despacho.protocolo, placa:despacho.placa, conductor:despacho.conductor });
+  document.getElementById('nr-desc').value = '';
+  document.querySelectorAll('.nov-tipo').forEach(n => n.classList.remove('sel'));
+  novTipo = '';
+  fotosMap['nr'] = []; actualizarFotoCount('nr');
+  // Mostrar confirmación visual
+  const confNr = document.getElementById('conf-novedad-ruta');
+  if (confNr) {
+    confNr.style.display = 'block';
+    confNr.innerHTML = `<strong>✓ Novedad enviada correctamente</strong><br>
+      <span style="font-size:11px">El operador fue notificado. Si necesitas reportar otra novedad puedes hacerlo abajo.</span>`;
+    setTimeout(() => { confNr.style.display = 'none'; }, 8000);
+  }
+  toast('Novedad enviada al operador');
+}
+
+// ================================================================
+//  TIENDAS — LISTA
+// ================================================================
+function renderListaTiendas() {
+  const lista = document.getElementById('vista-lista-tiendas');
+  document.getElementById('vista-form-tienda').style.display = 'none';
+  lista.style.display = 'block';
+  const total    = despacho.tiendas.length;
+  const cerradas = despacho.tiendas.filter(t => t.cerrada).length;
+  const pct      = total > 0 ? Math.round(cerradas/total*100) : 0;
+  // Calcular cuál es la primera no cerrada (la activa)
+  const activaNum = despacho.tiendas.find(t => !t.cerrada)?.numero;
+  lista.innerHTML = `
+    <div class="card" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:13px;font-weight:600">Tiendas del despacho</span>
+        <span style="font-size:12px;font-weight:600;color:var(--green)">${cerradas}/${total}</span>
+      </div>
+      <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+    </div>
+    ${despacho.tiendas.map(t => {
+      const bloqueada = t.numero < (activaNum || 999) && t.cerrada; // ya cerrada
+      const esActiva  = t.numero === activaNum;
+      const esFutura  = !t.cerrada && t.numero !== activaNum;
+      let cls = t.cerrada ? 'done' : esActiva ? 'active' : '';
+      let clickable = t.cerrada || esActiva; // cerradas se pueden ver, activa se puede abrir
+      return `<div class="tienda-item ${cls}${esFutura?' locked':''}" 
+        ${clickable ? `onclick="abrirTienda(${t.numero})"` : ''} 
+        style="cursor:${clickable?'pointer':'not-allowed'}">
+        <div class="t-num">${t.cerrada ? '✓' : t.numero}</div>
+        <div class="t-info">
+          <div class="t-name">${t.nombre}</div>
+          <div class="t-sub">${t.descripcion} · Cita ${t.horaCita||'—'}${t.palletsTienda?' · '+t.palletsTienda+' estibas':''}${t.horaSalida?' · Salida '+t.horaSalida:''}</div>
+        </div>
+        <span style="font-size:11px;color:${t.cerrada?'var(--green)':esActiva?'var(--blue)':'var(--gray)'}">
+          ${t.cerrada?'Cerrada':esActiva?'Activa':'Pendiente'}
+        </span>
+      </div>`;
+    }).join('')}`;
+}
+
+// ================================================================
+//  TIENDAS — FORMULARIO
+// ================================================================
+function abrirTienda(n) {
+  tiendaActual = despacho.tiendas.find(t => t.numero === n);
+  if (!tiendaActual) return;
+  document.getElementById('vista-lista-tiendas').style.display = 'none';
+  const form = document.getElementById('vista-form-tienda');
+  form.style.display = 'block';
+  const cerrada  = !!tiendaActual.cerrada;
+  const est      = (despacho.horasEstimadas || []).find(e => e.numero === n);
+  const minTienda = tiendaActual.palletsTienda > 0 ? tiendaActual.palletsTienda * 5 : null;
+
+  form.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <button onclick="mostrarListaTiendas()" style="background:none;border:1px solid var(--border);border-radius:var(--rs);padding:5px 10px;font-size:12px;cursor:pointer">← Lista</button>
+      <div style="font-size:13px;font-weight:600">Tienda ${n} — ${tiendaActual.nombre}</div>
+    </div>
+
+    ${cerrada ? '<div class="banner green"><strong>✓ Tienda cerrada.</strong> No se permiten modificaciones.</div>' : ''}
+
+    <div class="card">
+      <div class="card-title">Información</div>
+      <div class="field-row">
+        <div class="field"><label>Tienda</label><div class="field-static">${tiendaActual.nombre}</div></div>
+        <div class="field"><label>Hora cita</label><div class="field-static">${tiendaActual.horaCita||'—'}</div></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Estibas</label><div class="field-static ok">${tiendaActual.palletsTienda||0}</div></div>
+        <div class="field"><label>Tiempo est. descargue</label><div class="field-static warn">${minTienda?minTienda+' min':'—'}</div></div>
+      </div>
+      ${est?.horaEstimada ? `<div class="banner blue" style="margin-top:6px;margin-bottom:0;font-size:12px">
+        <strong>Llegada estimada:</strong> ${est.horaEstimada} · Tramo: ${est.minTramo||'—'} min
+      </div>` : ''}
+    </div>
+
+    <!-- REGISTRO DE HORAS -->
+    <div class="card">
+      <div class="card-title">Registro de tiempos</div>
+      ${!cerrada ? '<p style="font-size:11px;color:var(--gray);margin-bottom:10px">Toca el botón en el momento exacto — la hora se registra automáticamente y no se puede cambiar.</p>' : ''}
+
+      ${renderBtnHora('llegada', 'Llegada a tienda',       tiendaActual.horaLlegada,   'primary', cerrada)}
+      ${renderBtnHora('inicio',  'Inicio de descargue',    tiendaActual.horaInicioDesc,'amber',   cerrada || !tiendaActual.horaLlegada)}
+      ${renderBtnHora('fin',     'Fin de descargue',       tiendaActual.horaFinDesc,   'amber',   cerrada || !tiendaActual.horaInicioDesc)}
+    </div>
+
+    <!-- FOTOS -->
+    <div class="card" ${cerrada?'style="opacity:.7"':''}>
+      <div class="card-title">Fotos de etiquetas <span class="foto-count" id="cnt-tienda-${n}"></span></div>
+      ${!cerrada ? `
+        <input type="file" id="file-tienda-${n}" accept="image/*" capture="environment" onchange="agregarFoto('tienda_${n}',this)">
+        <div class="foto-grid" id="grid-tienda-${n}"></div>
+        <div class="foto-add" onclick="document.getElementById('file-tienda-${n}').click()">
+          <div class="foto-add-icon"><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><rect x="2" y="6" width="16" height="12" rx="2.5" stroke="#185FA5" stroke-width="1.5"/><circle cx="10" cy="12" r="3" stroke="#185FA5" stroke-width="1.5"/><path d="M6 6V5a2 2 0 012-2h4a2 2 0 012 2v1" stroke="#185FA5" stroke-width="1.5"/></svg></div>
+          <p style="font-size:11px;color:var(--gray)">Agregar foto de etiqueta</p>
+        </div>` : '<p style="font-size:12px;color:var(--gray)">Fotos registradas — tienda cerrada.</p>'}
+    </div>
+
+    <!-- OBSERVACION -->
+    ${!cerrada ? `
+    <div class="card">
+      <div class="card-title">Observación</div>
+      <div class="field"><textarea id="obs-tienda-${n}" placeholder="Novedad en esta tienda..."></textarea></div>
+    </div>` : ''}
+
+    <!-- SALIDA -->
+    ${!cerrada && tiendaActual.horaFinDesc ? `
+    <button class="hora-btn green" id="btn-salida-${n}" onclick="confirmarSalidaTienda(${n})">
+      Registrar salida de tienda → Notifica Telegram
+    </button>` : ''}
+    ${!cerrada && !tiendaActual.horaFinDesc ? `
+    <div class="banner amber">Completa llegada, inicio y fin de descargue para habilitar la salida.</div>` : ''}
+  `;
+
+  // Actualizar contadores de fotos
+  actualizarFotoCount(`tienda_${n}`);
+}
+
+function renderBtnHora(tipo, label, hora, color, bloqueado) {
+  if (hora) {
+    return `<div class="hora-registrada show" style="background:var(--green-l);border:1px solid var(--green);border-radius:var(--rs);padding:9px 12px;font-size:12px;color:var(--green-t);font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:6px">
+      <span>✓</span><span>${label}: <strong>${hora}</strong></span>
+    </div>`;
+  }
+  if (bloqueado) {
+    return `<button class="hora-btn ${color}" disabled style="margin-bottom:6px;opacity:.35">${label}</button>`;
+  }
+  return `<button class="hora-btn ${color}" id="btn-hora-${tipo}" onclick="registrarHora('${tipo}')" style="margin-bottom:6px">${label}</button>`;
+}
+
+async function registrarHora(tipo) {
+  if (!tiendaActual || tiendaActual.cerrada) return;
+  const hora = getNow();
+  const campo = { llegada:'horaLlegada', inicio:'horaInicioDesc', fin:'horaFinDesc' };
+  const n = tiendaActual.numero;
+
+  // 1. Guardar local inmediatamente
+  tiendaActual[campo[tipo]] = hora;
+  const tIdx = despacho.tiendas.findIndex(t => t.numero === n);
+  if (tIdx >= 0) despacho.tiendas[tIdx][campo[tipo]] = hora;
+  lsSet({ despacho });
+
+  // 2. Re-render formulario (muestra hora y desbloquea siguiente)
+  abrirTienda(n);
+  toast(`${tipo === 'llegada' ? 'Llegada' : tipo === 'inicio' ? 'Inicio descargue' : 'Fin descargue'} registrado: ${hora}`);
+
+  // 3. Enviar al servidor en segundo plano
+  const updates = { action:'registrarTienda', rowIndex:despacho.rowIndex,
+    numeroTienda:n, protocolo:despacho.protocolo, placa:despacho.placa };
+  updates[campo[tipo]] = hora;
+  apiPost(updates).catch(() => toast('Sin conexión — hora guardada localmente'));
+}
+
+async function confirmarSalidaTienda(n) {
+  const t = despacho.tiendas.find(x => x.numero === n);
+  if (!t || t.cerrada) return;
+  const btn = document.getElementById(`btn-salida-${n}`);
+  if (btn) { btn.disabled = true; btn.textContent = 'Registrando...'; }
+  const horaSalida = getNow();
+
+  // Subir fotos en background
+  (fotosMap[`tienda_${n}`] || []).forEach((f, i) =>
+    subirFoto(f, `etiqueta_T${n}_${i+1}`));
+
+  const obs = document.getElementById(`obs-tienda-${n}`)?.value || '';
+
+  // Registrar salida
+  const r = await apiPost({ action:'registrarSalidaTienda',
+    rowIndex:despacho.rowIndex, numeroTienda:n, horaSalida,
+    nombreTienda:t.nombre, protocolo:despacho.protocolo,
+    placa:despacho.placa, conductor:despacho.conductor, observacion:obs });
+
+  // Marcar tienda cerrada
+  t.horaSalida  = horaSalida;
+  t.estado      = 'completado';
+  t.cerrada     = true;
+  lsSet({ despacho });
+
+  // Si todas cerradas → marcar EN RETORNO
+  const todasCerradas = despacho.tiendas.every(x => x.cerrada);
+  if (todasCerradas) {
+    despacho.estadoCargue = 'En retorno';
+    lsSet({ despacho });
+  }
+
+  actualizarSteps();
+  toast(`Salida tienda ${n} registrada`);
+
+  if (todasCerradas) {
+    toast('¡Todas las tiendas completadas! Procede al retorno.');
+    setTimeout(() => irPantalla('retorno'), 1500);
+  } else {
+    mostrarListaTiendas();
+    renderListaTiendas();
+  }
+}
+
+function mostrarListaTiendas() {
+  tiendaActual = null;
+  document.getElementById('vista-lista-tiendas').style.display = 'block';
+  document.getElementById('vista-form-tienda').style.display   = 'none';
+  renderListaTiendas();
+}
+
+// ================================================================
+//  RETORNO
+// ================================================================
+function renderResumenRetorno() {
+  const el = document.getElementById('resumen-entregas');
+  if (!el) return;
+  el.innerHTML = despacho.tiendas.map(t => `
+    <div class="sum-row">
+      <span>${t.numero}. ${t.nombre}</span>
+      <span style="font-weight:600;color:${t.cerrada?'var(--green-t)':'var(--gray)'}">${t.cerrada?'✓ Entregado':'Pendiente'}</span>
+    </div>`).join('');
+}
+
+async function confirmarRetorno() {
+  if (!(fotosMap['proto']?.length > 0)) {
+    toast('Debes fotografiar el documento de protocolo'); return;
+  }
+  const btn = document.getElementById('btn-retorno');
+  btn.disabled = true; btn.textContent = 'Completando...';
+  const horaRetorno = getNow();
+
+  // Subir foto protocolo
+  const fotoProto = await subirFoto(fotosMap['proto'][0], 'protocolo_cierre');
+  fotosMap['proto'].slice(1).forEach((f,i) => subirFoto(f, `protocolo_${i+2}`));
+
+  await apiPost({ action:'registrarRetorno', rowIndex:despacho.rowIndex,
+    horaRetorno, fotoProtocolo:fotoProto,
+    observaciones: document.getElementById('obs-retorno').value,
+    protocolo:despacho.protocolo, placa:despacho.placa, conductor:despacho.conductor });
+
+  despacho.estadoCargue  = 'Completado';
+  despacho.horaRetornoCedi = horaRetorno;
+  lsSet({ despacho });
+  mostrarCompletado();
+}
+
+// ================================================================
+//  PANTALLA COMPLETADO
+// ================================================================
+function mostrarCompletado() {
+  document.getElementById('overlay-completado').style.display = 'flex';
+  document.getElementById('completado-sub').textContent =
+    `${despacho.conductor} · ${despacho.placa} · Protocolo ${despacho.protocolo}`;
+  const resumen = document.getElementById('completado-resumen');
+  resumen.innerHTML = `
+    <div class="sum-row"><span>Fecha</span><span>${despacho.fecha}</span></div>
+    <div class="sum-row"><span>CEDI</span><span>${despacho.cedi}</span></div>
+    <div class="sum-row"><span>Salida CEDI</span><span>${despacho.horaSalidaCedi||'—'}</span></div>
+    <div class="sum-row"><span>Retorno CEDI</span><span>${despacho.horaRetornoCedi||'—'}</span></div>
+    <div class="sum-row"><span>Tiendas atendidas</span><span>${despacho.tiendas.filter(t=>t.cerrada).length}/${despacho.tiendas.length}</span></div>
+    ${despacho.tiendas.map(t=>`<div class="sum-row"><span>${t.numero}. ${t.nombre}</span><span style="color:var(--green-t)">✓ ${t.horaSalida||''}</span></div>`).join('')}
+  `;
+}
+
+// ================================================================
+//  FOTOS
+// ================================================================
+function agregarFoto(key, input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    if (!fotosMap[key]) fotosMap[key] = [];
+    const idx = fotosMap[key].length;
+    fotosMap[key].push({ b64: e.target.result.split(',')[1], nombre: file.name, mime: file.type });
+    const grid = document.getElementById(`grid-${key}`);
+    if (grid) {
+      const div = document.createElement('div');
+      div.className = 'foto-thumb';
+      div.innerHTML = `<img src="${e.target.result}">
+        <button class="del" onclick="quitarFoto('${key}',${idx},this.parentElement)">✕</button>`;
+      grid.appendChild(div);
+    }
+    actualizarFotoCount(key);
+    input.value = '';
+  };
+  reader.readAsDataURL(file);
+}
+
+function quitarFoto(key, idx, el) {
+  if (fotosMap[key]) fotosMap[key][idx] = null;
+  el.remove();
+  actualizarFotoCount(key);
+}
+
+function actualizarFotoCount(key) {
+  const cnt = (fotosMap[key] || []).filter(Boolean).length;
+  const el  = document.getElementById(`cnt-${key}`);
+  if (el) { el.textContent = cnt > 0 ? `(${cnt} foto${cnt!==1?'s':''})` : ''; el.style.display = cnt>0?'inline':'none'; }
+}
+
+// ================================================================
+//  HELPERS
+// ================================================================
+function renderSelectTiendas() {
+  const sel = document.getElementById('nr-tienda');
+  sel.innerHTML = '<option value="">— General —</option>' +
+    (despacho.tiendas||[]).map(t=>`<option value="${t.numero}">${t.numero}. ${t.nombre}</option>`).join('');
+}
+
+function getNow() {
+  const n = new Date();
+  return `${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
+}
+
+async function subirFoto(foto, tipo) {
+  if (!foto || !foto.b64) { console.log('subirFoto: foto sin b64'); return null; }
+  try {
+    console.log('subirFoto: subiendo', tipo, 'mime:', foto.mime);
+    const r = await apiPost({ action:'subirFoto', base64:foto.b64, nombre:foto.nombre,
+      mimeType:foto.mime, tipo, protocolo:despacho.protocolo,
+      placa:despacho.placa, fecha:despacho.fecha });
+    console.log('subirFoto respuesta:', JSON.stringify(r));
+    return r.url || null;
+  } catch(e) { console.log('subirFoto error:', e.message); return null; }
+}
+
+async function apiPost(data) {
+  try {
+    const r = await fetch(API_URL, { method:'POST', body:JSON.stringify(data) });
+    return await r.json();
+  } catch { toast('Sin conexión'); return { error:'offline' }; }
+}
+
+function lsSet(data) {
+  try { localStorage.setItem(LS_KEY, JSON.stringify({ ...lsGet(), ...data })); } catch {}
+}
+function lsGet() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch { return null; }
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ================================================================
+//  DEMO
+// ================================================================
+function demoDespacho() {
+  const hoy = new Date();
+  const fmtF = d => String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+  const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  return {
+    id:'D-DEMO', rowIndex:2, protocolo:'P-DEMO', placa:'POZ-720',
+    conductor:'Carlos Alberto Muñoz', cedi:'CEDI Bogotá Norte', turno:'Diurno',
+    estadoCargue:'Cargando', muelle:'', pallet:'15',
+    horaInicioCargue:'', horaCargue:'04:50', horaOfrecimiento:'04:00',
+    horaEntradaCedi:'04:15', horaSalidaCedi:'05:10',
+    fecha:fmtF(hoy), dia:dias[hoy.getDay()],
+    corte:'ABR-MAY 2026',
+    horasEstimadas:[
+      {numero:1, horaEstimada:'07:30', minTramo:45},
+      {numero:2, horaEstimada:'09:00', minTramo:60},
+      {numero:3, horaEstimada:'10:30', minTramo:55},
+    ],
+    tiendas:[
+      { numero:1, nombre:'Éxito Calle 80', descripcion:'Lácteos y refrigerados',
+        horaCita:'07:30', horaLlegada:'', horaInicioDesc:'', horaFinDesc:'',
+        horaSalida:'', palletsTienda:6, cerrada:false, estado:'pendiente' },
+      { numero:2, nombre:'Jumbo Suba', descripcion:'Secos y bebidas',
+        horaCita:'09:00', horaLlegada:'', horaInicioDesc:'', horaFinDesc:'',
+        horaSalida:'', palletsTienda:5, cerrada:false, estado:'pendiente' },
+      { numero:3, nombre:'Carulla Usaquén', descripcion:'Refrigerados premium',
+        horaCita:'10:30', horaLlegada:'', horaInicioDesc:'', horaFinDesc:'',
+        horaSalida:'', palletsTienda:4, cerrada:false, estado:'pendiente' },
+    ]
+  };
+}
+</script>
+</body>
+</html>
