@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="theme-color" content="#185FA5">
-<title>TRASLADARR3 — Buscar despacho</title>
+<title>FleteTrack — Buscar despacho</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
 body{background:#185FA5;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -51,7 +51,7 @@ input:focus{border-color:#185FA5}
   <div class="footer">FleteTrack — Acceso por placa</div>
 </div>
 <script>
-const API_URL  = 'https://script.google.com/macros/s/AKfycbyykzPD2bpsvCPKmJ6xEvM_TUqpPL4agkUYpTXvhBOmXHwd_y6kJbqhUYqnKuoP0tPy/exec';
+const API_URL  = 'https://script.google.com/macros/s/AKfycbzzOZA9beq_Gnkpt3opmC3mJNV_s6pIDVfuFIJvAIUPawhsC-S2iBI9blbucLyM5MZS/exec';
 const BASE_URL = 'https://davidmilques.github.io/TRASLADARR3/conductor.html';
 
 async function buscar() {
@@ -64,7 +64,7 @@ async function buscar() {
   btn.disabled=true; btn.textContent='Buscando...';
   try {
     const controller = new AbortController();
-    const tid = setTimeout(()=>controller.abort(), 20000);
+    const tid = setTimeout(()=>controller.abort(), 55000);
     const r   = await fetch(`${API_URL}?action=buscarPorPlaca&placa=${encodeURIComponent(placa)}`,
       {signal:controller.signal});
     clearTimeout(tid);
