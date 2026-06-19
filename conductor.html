@@ -339,7 +339,7 @@ input[type=file]{display:none}
 // ================================================================
 //  CONFIG
 // ================================================================
-const API_URL      = 'https://script.google.com/macros/s/AKfycbzzOZA9beq_Gnkpt3opmC3mJNV_s6pIDVfuFIJvAIUPawhsC-S2iBI9blbucLyM5MZS/exec';
+const API_URL      = 'https://script.google.com/macros/s/AKfycbzl84IARLMObk_DtbpAf8n-L93Z4_dUc2cpIPwJpdX2NCYj0ja5W1ckZ_0E4yglfBbZ/exec';
 const params       = new URLSearchParams(location.search);
 const DESPACHO_ID  = params.get('id') || 'D-DEMO';
 const ES_DEMO      = params.get('demo') === '1' || !params.get('id');
@@ -659,6 +659,9 @@ async function enviarNovedadCargue() {
     'CONTENEDORES':            parseInt(document.getElementById('nc-con').value)||0
   };
   if (!Object.values(vals).some(v => v > 0)) { toast('Ingresa al menos un valor > 0'); return; }
+  // Bloquear botón inmediatamente para evitar doble envío
+  const btnNc = document.querySelector('#form-nc .hora-btn.amber');
+  if (btnNc) { btnNc.disabled = true; btnNc.textContent = 'Registrando...'; }
   // Esperar primera foto para incluir URL en Telegram
   const fotosNc = (fotosMap['nc']||[]).filter(Boolean);
   let fotoUrlNc = null;
@@ -684,6 +687,9 @@ async function enviarNovedadRuta() {
   if (!novTipo) { toast('Selecciona el tipo de novedad'); return; }
   const desc = document.getElementById('nr-desc').value.trim();
   if (!desc) { toast('Escribe una descripción'); return; }
+  // Bloquear botón inmediatamente para evitar doble envío
+  const btnNr = document.querySelector('[onclick="enviarNovedadRuta()"]');
+  if (btnNr) { btnNr.disabled = true; btnNr.textContent = 'Enviando...'; }
   // Esperar la primera foto para incluir la URL en el reporte de Telegram
   const fotosNr = (fotosMap['nr']||[]).filter(Boolean);
   let fotoUrl = null;
@@ -702,6 +708,8 @@ async function enviarNovedadRuta() {
   document.querySelectorAll('.nov-tipo').forEach(n => n.classList.remove('sel'));
   novTipo = '';
   fotosMap['nr'] = []; actualizarFotoCount('nr');
+  // Rehabilitar botón — puede reportar otra novedad después
+  if (btnNr) { btnNr.disabled = false; btnNr.textContent = 'Enviar novedad al operador'; }
   // Mostrar confirmación visual
   const confNr = document.getElementById('conf-novedad-ruta');
   if (confNr) {
