@@ -49,7 +49,7 @@ tr:hover td{background:var(--bg)}
 </head>
 <body>
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbzl84IARLMObk_DtbpAf8n-L93Z4_dUc2cpIPwJpdX2NCYj0ja5W1ckZ_0E4yglfBbZ/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbzzOZA9beq_Gnkpt3opmC3mJNV_s6pIDVfuFIJvAIUPawhsC-S2iBI9blbucLyM5MZS/exec';
 const DASH_URL = 'https://davidmilques.github.io/TRASLADARR3/dashboard.html';
 const STATS_URL = 'https://davidmilques.github.io/TRASLADARR3/estadisticas.html';
 let datos = null;
@@ -57,7 +57,7 @@ let tabActivo = 'servicio';
 </script>
 
 <div class="topbar">
-  <h1>TRASLADARR3 — Informes</h1>
+  <h1>FleteTrack — Informes</h1>
   <div class="topbar-nav">
     <a class="nav-link" id="link-dash" href="#">Dashboard</a>
     <a class="nav-link" id="link-stats" href="#">Estadísticas</a>
@@ -313,21 +313,34 @@ function calcularRanking() {
   }
 
   var lista = Object.values(porCond).map(function(c){
-    c.totalViajes      = c.protocolos.size;
-    c.pctCumplimiento  = c.llegadas>0 ? Math.round(c.llegsATiempo/c.llegadas*100) : 0;
-    c.pctAdherencia    = c.tiempoEsperado>0 ? Math.round(c.tiempoReal/c.tiempoEsperado*100) : null;
-    c.scoreAdherencia  = c.pctAdherencia!==null ? Math.max(0,Math.min(100,200-c.pctAdherencia)) : null;
+    c.totalViajes     = c.protocolos.size;
+    c.pctCumplimiento = c.llegadas>0 ? Math.round(c.llegsATiempo/c.llegadas*100) : 0;
+    c.pctAdherencia   = c.tiempoEsperado>0 ? Math.round(c.tiempoReal/c.tiempoEsperado*100) : null;
+    c.scoreAdherencia = c.pctAdherencia!==null ? Math.max(0,Math.min(100,200-c.pctAdherencia)) : null;
+
+    // Determinar si el conductor usó el aplicativo
+    // Condición: debe tener al menos una tienda con tiempo de descargue registrado
+    // (tiempoEsperado > 0 significa que registró inicio/fin descargue con pallets)
+    c.usoApp = c.tiempoEsperado > 0;
     return c;
   });
 
-  var maxKm      = Math.max.apply(null,lista.map(function(c){return c.km;}).concat([1]));
-  var maxTiendas = Math.max.apply(null,lista.map(function(c){return c.tiendas;}).concat([1]));
-  var maxPallets = Math.max.apply(null,lista.map(function(c){return c.pallets;}).concat([1]));
+  // Normalizar km, tiendas, pallets solo entre los que usaron el app
+  var usaron = lista.filter(function(c){ return c.usoApp; });
+  var maxKm      = Math.max.apply(null, usaron.map(function(c){return c.km;}).concat([1]));
+  var maxTiendas = Math.max.apply(null, usaron.map(function(c){return c.tiendas;}).concat([1]));
+  var maxPallets = Math.max.apply(null, usaron.map(function(c){return c.pallets;}).concat([1]));
 
   lista.forEach(function(c){
-    c.scoreKm      = Math.round(c.km/maxKm*100);
-    c.scoreTiendas = Math.round(c.tiendas/maxTiendas*100);
-    c.scorePallets = Math.round(c.pallets/maxPallets*100);
+    if (!c.usoApp) {
+      // No usó el app — scores en 0, score final 0
+      c.scoreKm = 0; c.scoreTiendas = 0; c.scorePallets = 0;
+      c.score   = 0; c.noApp = true;
+    } else {
+      c.scoreKm      = Math.round(c.km/maxKm*100);
+      c.scoreTiendas = Math.round(c.tiendas/maxTiendas*100);
+      c.scorePallets = Math.round(c.pallets/maxPallets*100);
+    }
   });
   return lista;
 }
@@ -362,13 +375,19 @@ function recalcularRanking() {
   }
 
   rankingData.forEach(function(c){
+    if (c.noApp) { c.score = 0; return; } // No usó el app — score 0
     var scoreAdh = c.scoreAdherencia!==null ? c.scoreAdherencia : 50;
     c.score = Math.round(
       (c.pctCumplimiento*pCumpl + scoreAdh*pAdh +
        c.scoreKm*pKm + c.scoreTiendas*pTiend + c.scorePallets*pPall) / 100
     );
   });
-  rankingData.sort(function(a,b){return b.score-a.score;});
+  // Ordenar: los que usaron el app primero (por score), los que no al final
+  rankingData.sort(function(a,b){
+    if (a.noApp && !b.noApp) return 1;
+    if (!a.noApp && b.noApp) return -1;
+    return b.score - a.score;
+  });
 
   // Podio
   var colores  = ['#C9A227','#A8A9AD','#CD7F32'];
@@ -390,9 +409,11 @@ function recalcularRanking() {
 
   // Tabla
   tbody.innerHTML = rankingData.map(function(c,i){
-    var medalla = i===0?'🥇':i===1?'🥈':i===2?'🥉':('#'+(i+1));
-    var sc = c.score>=80?'#085041':c.score>=60?'#633806':'#791F1F';
-    var bAdh = c.pctAdherencia===null
+    var medalla = c.noApp ? '—' : i===0?'🥇':i===1?'🥈':i===2?'🥉':('#'+(i+1));
+    var sc = c.noApp ? '#8899AA' : c.score>=80?'#085041':c.score>=60?'#633806':'#791F1F';
+    var bAdh = c.noApp
+      ? '<span style="background:#F1EFE8;color:#5F5E5A;display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px">Sin registro</span>'
+      : c.pctAdherencia===null
       ? '<span style="background:#F1EFE8;color:#5F5E5A;display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px">Sin datos</span>'
       : c.pctAdherencia<=100
         ? '<span style="background:#E1F5EE;color:#085041;display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px">'+c.pctAdherencia+'%</span>'
