@@ -342,7 +342,7 @@ input[type=file]{display:none}
 const API_URL      = 'https://script.google.com/macros/s/AKfycbzzOZA9beq_Gnkpt3opmC3mJNV_s6pIDVfuFIJvAIUPawhsC-S2iBI9blbucLyM5MZS/exec';
 const params       = new URLSearchParams(location.search);
 const DESPACHO_ID  = params.get('id') || 'D-DEMO';
-const ES_DEMO      = params.get('demo') === '1' || !params.get('id');
+const ES_DEMO      = false; // Demo deshabilitado
 const LS_KEY       = `ft_${DESPACHO_ID}`;
 
 // ================================================================
@@ -377,18 +377,7 @@ async function iniciar() {
     if (fc) fc.style.display = 'block';
     iniciarUI(); // render instantáneo sin esperar red
   }
-  // Modo demo — no llama a la API
-  if (ES_DEMO && !despacho) {
-    despacho = demoDespacho();
-    lsSet({ despacho });
-    const lc = document.getElementById('load-cargue');
-    const fc = document.getElementById('form-cargue');
-    if (lc) lc.style.display = 'none';
-    if (fc) fc.style.display = 'block';
-    iniciarUI();
-    toast('Modo demo — datos de ejemplo');
-    return;
-  }
+  // Demo deshabilitado — siempre carga datos reales
   // Cargar desde servidor en paralelo
   try {
     const ROW_INDEX = params.get('row') || '';
@@ -445,8 +434,7 @@ function iniciarUI() {
     // Render header
     const elTit = document.getElementById('hdr-titulo');
   if (elTit) {
-    if (ES_DEMO) elTit.innerHTML = 'Protocolo ' + (despacho.protocolo||'') + ' <span style="background:#E07B12;color:white;font-size:10px;padding:2px 7px;border-radius:10px;vertical-align:middle;font-weight:600">DEMO</span>';
-    else elTit.textContent = 'Protocolo ' + (despacho.protocolo||'');
+    elTit.textContent = 'Protocolo ' + (despacho.protocolo||'');
   }
     const elSub = document.getElementById('hdr-sub'); if(elSub) elSub.textContent = `${despacho.conductor} · ${despacho.placa}`;
     // Render cargue
@@ -802,13 +790,7 @@ function abrirTienda(n) {
 
     <!-- FOTOS -->
     <div class="card" ${cerrada?'style="opacity:.7"':''}>
-      <div class="card-title">Fotos de etiquetas
-        <span class="foto-count" id="cnt-tienda-${n}"></span>
-        ${(fotosMap[`tienda_${n}`]||[]).filter(Boolean).length > 0
-          ? `<span style="background:#E1F5EE;color:#085041;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;margin-left:4px">
-              ✓ ${(fotosMap[`tienda_${n}`]||[]).filter(Boolean).length} guardada${(fotosMap[`tienda_${n}`]||[]).filter(Boolean).length!==1?'s':''}</span>`
-          : ''}
-      </div>
+      <div class="card-title">Fotos de etiquetas <span class="foto-count" id="cnt-tienda-${n}"></span></div>
       ${!cerrada ? `
         <input type="file" id="file-tienda-${n}" accept="image/*" capture="environment" onchange="agregarFoto('tienda_${n}',this)">
         <div class="foto-grid" id="grid-tienda-${n}"></div>
@@ -834,24 +816,8 @@ function abrirTienda(n) {
     <div class="banner amber">Completa llegada, inicio y fin de descargue para habilitar la salida.</div>` : ''}
   `;
 
-  // Restaurar miniaturas de fotos ya tomadas (persisten en fotosMap aunque se regenere el HTML)
-  const keyFoto = `tienda_${n}`;
-  const fotosGuardadas = (fotosMap[keyFoto] || []).filter(Boolean);
-  if (fotosGuardadas.length > 0) {
-    const grid = document.getElementById(`grid-${keyFoto}`);
-    if (grid) {
-      grid.innerHTML = '';
-      fotosGuardadas.forEach((foto, idx) => {
-        if (!foto || !foto.b64) return;
-        const div = document.createElement('div');
-        div.className = 'foto-thumb';
-        div.innerHTML = `<img src="data:${foto.mime};base64,${foto.b64}">
-          <button class="del" onclick="quitarFoto('${keyFoto}',${idx},this.parentElement)">✕</button>`;
-        grid.appendChild(div);
-      });
-    }
-  }
-  actualizarFotoCount(keyFoto);
+  // Actualizar contadores de fotos
+  actualizarFotoCount(`tienda_${n}`);
 }
 
 function renderBtnHora(tipo, label, hora, color, bloqueado) {
