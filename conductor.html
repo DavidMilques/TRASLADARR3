@@ -118,6 +118,7 @@ input[type=file]{display:none}
   <div class="step blocked" id="step-novedad" onclick="irPantalla('novedad')"><div class="step-dot"></div>Novedades</div>
   <div class="step blocked" id="step-tiendas" onclick="irPantalla('tiendas')"><div class="step-dot"></div>Tiendas</div>
   <div class="step blocked" id="step-retorno" onclick="irPantalla('retorno')"><div class="step-dot"></div>Retorno</div>
+  <div class="step" id="step-tanqueo" onclick="irPantalla('tanqueo')" style="background:#E1F5EE;border-color:#1D9E75;color:#085041;cursor:pointer"><div class="step-dot"></div>⛽ Tanqueo</div>
 </div>
 
 <div class="content">
@@ -322,6 +323,85 @@ input[type=file]{display:none}
   <button class="hora-btn green" id="btn-retorno" onclick="confirmarRetorno()">Completar despacho</button>
 </div>
 
+
+<!-- ══ TANQUEO ════════════════════════════════════════════════ -->
+<div class="screen" id="screen-tanqueo">
+  <div class="banner blue" style="margin-bottom:12px">
+    <strong>⛽ Registro de tanqueo</strong> — Registra cada vez que tanquees el vehículo durante el viaje.
+  </div>
+
+  <!-- HISTORIAL DE TANQUEOS DE ESTE VIAJE -->
+  <div class="card" id="card-historial-tanqueo" style="display:none;margin-bottom:10px">
+    <div class="card-title">Tanqueos registrados en este viaje</div>
+    <div id="lista-tanqueos"></div>
+  </div>
+
+  <!-- FORMULARIO NUEVO TANQUEO -->
+  <div class="card">
+    <div class="card-title">Registrar nuevo tanqueo</div>
+    <div class="field-row">
+      <div class="field">
+        <label>Kilómetros odómetro <span style="color:var(--red-t)">*</span></label>
+        <input type="number" id="tq-km" placeholder="Ej: 85420" inputmode="numeric">
+      </div>
+      <div class="field">
+        <label>Galones tanqueados <span style="color:var(--red-t)">*</span></label>
+        <input type="number" id="tq-galones" placeholder="Ej: 45.5" step="0.1" inputmode="decimal">
+      </div>
+    </div>
+    <div class="field">
+      <label>Estación / Proveedor</label>
+      <input type="text" id="tq-estacion" placeholder="Nombre de la estación de servicio">
+    </div>
+    <div class="field">
+      <label>Valor total ($) <span style="font-size:10px;color:var(--gray)">(opcional)</span></label>
+      <input type="number" id="tq-valor" placeholder="Ej: 280000" inputmode="numeric">
+    </div>
+    <div class="field">
+      <label>Observaciones</label>
+      <textarea id="tq-obs" placeholder="Novedades del tanqueo..." style="height:50px;resize:none;width:100%;padding:9px;border:1px solid var(--border);border-radius:var(--rs);font-size:13px"></textarea>
+    </div>
+  </div>
+
+  <!-- FOTOS DEL TANQUEO -->
+  <div class="card">
+    <div class="card-title">Fotos de evidencia <span style="font-size:10px;color:var(--gray)">(recibo y odómetro)</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <div>
+        <div style="font-size:10px;color:var(--gray);margin-bottom:4px;font-weight:500">RECIBO</div>
+        <input type="file" id="file-tq-recibo" accept="image/*" onchange="agregarFotoTanqueo('recibo',this)">
+        <input type="file" id="file-tq-recibo-cam" accept="image/*" capture="environment" onchange="agregarFotoTanqueo('recibo',this)">
+        <div class="foto-grid" id="grid-tq-recibo"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+          <div class="foto-add" onclick="document.getElementById('file-tq-recibo-cam').click()" style="padding:10px">
+            <p style="font-size:10px;color:var(--gray)">📷 Cámara</p>
+          </div>
+          <div class="foto-add" onclick="document.getElementById('file-tq-recibo').click()" style="padding:10px">
+            <p style="font-size:10px;color:var(--gray)">🖼️ Galería</p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--gray);margin-bottom:4px;font-weight:500">ODÓMETRO</div>
+        <input type="file" id="file-tq-odometro" accept="image/*" onchange="agregarFotoTanqueo('odometro',this)">
+        <input type="file" id="file-tq-odometro-cam" accept="image/*" capture="environment" onchange="agregarFotoTanqueo('odometro',this)">
+        <div class="foto-grid" id="grid-tq-odometro"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+          <div class="foto-add" onclick="document.getElementById('file-tq-odometro-cam').click()" style="padding:10px">
+            <p style="font-size:10px;color:var(--gray)">📷 Cámara</p>
+          </div>
+          <div class="foto-add" onclick="document.getElementById('file-tq-odometro').click()" style="padding:10px">
+            <p style="font-size:10px;color:var(--gray)">🖼️ Galería</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="hora-btn green" onclick="registrarTanqueo()">⛽ Registrar tanqueo</button>
+  <div id="conf-tanqueo" class="banner green" style="display:none;margin-top:8px"></div>
+</div>
+
 </div><!-- /content -->
 
 <!-- Pantalla viaje completado -->
@@ -339,10 +419,10 @@ input[type=file]{display:none}
 // ================================================================
 //  CONFIG
 // ================================================================
-const API_URL      = 'https://script.google.com/macros/s/AKfycbzzOZA9beq_Gnkpt3opmC3mJNV_s6pIDVfuFIJvAIUPawhsC-S2iBI9blbucLyM5MZS/exec';
+const API_URL      = 'https://script.google.com/macros/s/AKfycbxTx_FuM2-1AcyB3fB2uHPBP1E1hc109v4R_heX3M_DTO-LsQdGS1EBwlt_32ijyXAg/exec';
 const params       = new URLSearchParams(location.search);
 const DESPACHO_ID  = params.get('id') || 'D-DEMO';
-const ES_DEMO      = false; // Demo deshabilitado
+const ES_DEMO      = params.get('demo') === '1' || !params.get('id');
 const LS_KEY       = `ft_${DESPACHO_ID}`;
 
 // ================================================================
@@ -377,7 +457,18 @@ async function iniciar() {
     if (fc) fc.style.display = 'block';
     iniciarUI(); // render instantáneo sin esperar red
   }
-  // Demo deshabilitado — siempre carga datos reales
+  // Modo demo — no llama a la API
+  if (ES_DEMO && !despacho) {
+    despacho = demoDespacho();
+    lsSet({ despacho });
+    const lc = document.getElementById('load-cargue');
+    const fc = document.getElementById('form-cargue');
+    if (lc) lc.style.display = 'none';
+    if (fc) fc.style.display = 'block';
+    iniciarUI();
+    toast('Modo demo — datos de ejemplo');
+    return;
+  }
   // Cargar desde servidor en paralelo
   try {
     const ROW_INDEX = params.get('row') || '';
@@ -434,7 +525,8 @@ function iniciarUI() {
     // Render header
     const elTit = document.getElementById('hdr-titulo');
   if (elTit) {
-    elTit.textContent = 'Protocolo ' + (despacho.protocolo||'');
+    if (ES_DEMO) elTit.innerHTML = 'Protocolo ' + (despacho.protocolo||'') + ' <span style="background:#E07B12;color:white;font-size:10px;padding:2px 7px;border-radius:10px;vertical-align:middle;font-weight:600">DEMO</span>';
+    else elTit.textContent = 'Protocolo ' + (despacho.protocolo||'');
   }
     const elSub = document.getElementById('hdr-sub'); if(elSub) elSub.textContent = `${despacho.conductor} · ${despacho.placa}`;
     // Render cargue
@@ -491,6 +583,7 @@ function irPantalla(name) {
   });
   if (name === 'tiendas') renderListaTiendas();
   if (name === 'retorno') renderResumenRetorno();
+  if (name === 'tanqueo') renderHistorialTanqueos();
 }
 
 // ================================================================
@@ -1075,6 +1168,96 @@ function demoDespacho() {
     ]
   };
 }
+// ================================================================
+//  TANQUEO
+// ================================================================
+let fotosTanqueo = { recibo: null, odometro: null };
+let tanqueosViaje = [];
+
+function agregarFotoTanqueo(tipo, input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    fotosTanqueo[tipo] = { b64: e.target.result.split(',')[1], nombre: file.name, mime: file.type };
+    const grid = document.getElementById(`grid-tq-${tipo}`);
+    if (grid) {
+      grid.innerHTML = `<div class="foto-thumb"><img src="${e.target.result}"></div>`;
+    }
+    input.value = '';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function registrarTanqueo() {
+  const km      = document.getElementById('tq-km').value.trim();
+  const galones = document.getElementById('tq-galones').value.trim();
+  if (!km || !galones) { toast('Ingresa km del odómetro y galones'); return; }
+
+  const btn = document.querySelector('#screen-tanqueo .hora-btn.green');
+  if (btn) { btn.disabled = true; btn.textContent = 'Registrando...'; }
+
+  // Subir fotos
+  let fotoRecibo = null, fotoOdometro = null;
+  if (fotosTanqueo.recibo)   fotoRecibo   = await subirFoto(fotosTanqueo.recibo,   'tanqueo_recibo');
+  if (fotosTanqueo.odometro) fotoOdometro = await subirFoto(fotosTanqueo.odometro, 'tanqueo_odometro');
+
+  const tanqueo = {
+    action: 'registrarTanqueo',
+    rowIndex: despacho.rowIndex,
+    protocolo: despacho.protocolo,
+    placa: despacho.placa,
+    conductor: despacho.conductor,
+    fecha: despacho.fecha,
+    turno: despacho.turno,
+    cedi: despacho.cedi,
+    km: parseFloat(km),
+    galones: parseFloat(galones),
+    estacion: document.getElementById('tq-estacion').value.trim(),
+    valor: document.getElementById('tq-valor').value.trim(),
+    observaciones: document.getElementById('tq-obs').value.trim(),
+    hora: getNow(),
+    fotoRecibo, fotoOdometro
+  };
+
+  await apiPost(tanqueo);
+
+  // Guardar en historial local
+  tanqueosViaje.push(tanqueo);
+  renderHistorialTanqueos();
+
+  // Limpiar formulario
+  ['tq-km','tq-galones','tq-estacion','tq-valor','tq-obs'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  fotosTanqueo = { recibo: null, odometro: null };
+  document.getElementById('grid-tq-recibo').innerHTML   = '';
+  document.getElementById('grid-tq-odometro').innerHTML = '';
+
+  if (btn) { btn.disabled = false; btn.textContent = '⛽ Registrar tanqueo'; }
+  const conf = document.getElementById('conf-tanqueo');
+  if (conf) {
+    conf.style.display = 'block';
+    conf.innerHTML = `<strong>✓ Tanqueo registrado</strong> — ${galones} galones · ${km} km odómetro · ${getNow()}`;
+    setTimeout(() => { conf.style.display = 'none'; }, 5000);
+  }
+  toast('Tanqueo registrado correctamente');
+}
+
+function renderHistorialTanqueos() {
+  const card = document.getElementById('card-historial-tanqueo');
+  const lista = document.getElementById('lista-tanqueos');
+  if (!tanqueosViaje.length) { if(card) card.style.display='none'; return; }
+  if(card) card.style.display='block';
+  lista.innerHTML = tanqueosViaje.map((t,i) => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:12px;font-weight:600">${t.hora} · ${t.galones} galones</div>
+        <div style="font-size:10px;color:var(--gray)">${t.km} km odómetro${t.estacion?' · '+t.estacion:''}</div>
+      </div>
+      <span style="background:var(--green-l);color:var(--green-t);padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600">✓</span>
+    </div>`).join('');
+}
+
 </script>
 </body>
 </html>
