@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>TRASLADARR3 — Estadísticas</title>
+<title>FleteTrack — Estadísticas</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 :root{--blue:#185FA5;--blue-l:#E6F1FB;--blue-t:#0C447C;--green:#1D9E75;--green-l:#E1F5EE;--green-t:#085041;--amber:#BA7517;--amber-l:#FAEEDA;--amber-t:#633806;--red:#E24B4A;--red-l:#FCEBEB;--red-t:#791F1F;--gray:#5F5E5A;--gray-l:#F1EFE8;--gray-t:#2C2C2A;--border:#e0ddd6;--bg:#f8f7f4;--r:10px;--rs:6px}
@@ -113,7 +113,7 @@ let stats = null; let dispData = null; let charts = {};
 <div class="topbar">
   <h1>FleteTrack — Estadísticas</h1>
   <div class="topbar-right">
-    <a class="nav-link" id="link-dash">Dashboard</a>
+    <a href="login.html" style="background:rgba(255,255,255,.18);color:white;border:none;padding:5px 12px;border-radius:6px;font-size:11px;font-weight:500;text-decoration:none;cursor:pointer">🏠 Inicio</a> <a class="nav-link" id="link-dash">Dashboard</a>
     <a class="nav-link" id="link-inf">Informes</a>
     <span class="last-upd" id="last-upd"></span>
     <button class="refresh-btn" onclick="cargar()">
