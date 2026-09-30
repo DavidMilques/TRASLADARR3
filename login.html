@@ -118,6 +118,16 @@ body{background:var(--blue);min-height:100vh;display:flex;flex-direction:column;
       <div class="menu-label">Documentos</div>
       <div class="menu-sub">Conductores y vehículos</div>
     </a>
+    <a class="menu-btn" id="link-combustible" href="#">
+      <div class="menu-icon">⛽</div>
+      <div class="menu-label">Combustible</div>
+      <div class="menu-sub">Rendimiento y tanqueos</div>
+    </a>
+    <a class="menu-btn" id="link-busqueda" href="#">
+      <div class="menu-icon">🔍</div>
+      <div class="menu-label">Búsqueda</div>
+      <div class="menu-sub">Buscar despacho por placa</div>
+    </a>
     <a class="menu-btn menu-btn-full" id="link-mantenimiento" href="#" style="display:none">
       <div class="menu-icon">🔧</div>
       <div class="menu-label">Mantenimiento</div>
@@ -162,7 +172,9 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('link-estadisticas').href = URLS.estadisticas;
   document.getElementById('link-informes').href     = URLS.informes;
   document.getElementById('link-mantenimiento').href= URLS.mantenimiento;
-  document.getElementById('link-documentos').href    = URLS.documentos || (BASE + 'documentos.html');
+  document.getElementById('link-documentos').href    = URLS.documentos  || (BASE + 'documentos.html');
+  document.getElementById('link-combustible').href   = URLS.combustible || (BASE + 'combustible.html');
+  document.getElementById('link-busqueda').href      = URLS.busqueda    || (BASE + 'busqueda.html');
 });
 
 function intentarLogin() {

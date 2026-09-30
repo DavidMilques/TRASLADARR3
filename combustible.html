@@ -151,6 +151,8 @@ window.addEventListener('DOMContentLoaded', () => {
   const hace30 = new Date(hoy); hace30.setDate(hoy.getDate()-30);
   document.getElementById('f-desde').value = fi(hace30);
   document.getElementById('f-hasta').value = fi(hoy);
+  // Cargar automáticamente al abrir
+  cargar();
 });
 
 function fi(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
