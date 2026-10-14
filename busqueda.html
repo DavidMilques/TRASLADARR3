@@ -40,7 +40,7 @@ input:focus{border-color:#185FA5}
   </div>
   <div class="card">
     <div class="title">Ingresa el número de placa</div>
-    <div class="sub">El sistema buscará los viajes pendientes asignados a esa placa</div>
+    <div class="sub">El sistema buscará los viajes de hoy pendientes para esa placa</div>
     <input type="text" id="inp-placa" placeholder="ABC123" maxlength="10"
            oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9-]/g,'')"
            onkeydown="if(event.key==='Enter')buscar()">
@@ -51,7 +51,7 @@ input:focus{border-color:#185FA5}
   <div class="footer">FleteTrack — Acceso por placa</div>
 </div>
 <script>
-const API_URL  = 'https://script.google.com/macros/s/AKfycbxTx_FuM2-1AcyB3fB2uHPBP1E1hc109v4R_heX3M_DTO-LsQdGS1EBwlt_32ijyXAg/exec';
+const API_URL  = 'https://script.google.com/macros/s/AKfycbz0WRCoH06LZoN8KlOpTCQsTzhHze6IxbbMKZICvh7cjcEMuskA3Db-dKIFy8UxkySK/exec';
 const BASE_URL = 'https://davidmilques.github.io/TRASLADARR3/conductor.html';
 
 async function buscar() {
@@ -74,21 +74,38 @@ async function buscar() {
       mostrarError('No hay viajes pendientes para la placa '+placa+' hoy.');
       btn.disabled=false; btn.textContent='Buscar despachos'; return;
     }
-    // Si un solo despacho — ir directo
-    if (d.despachos.length===1) {
-      const dp=d.despachos[0];
+    // Filtrar: solo viajes de HOY y que NO estén completados
+    const hoy = new Date();
+    const hoyStr = String(hoy.getDate()).padStart(2,'0') + '/' +
+                   String(hoy.getMonth()+1).padStart(2,'0') + '/' + hoy.getFullYear();
+    const pendientes = d.despachos.filter(dp =>
+      dp.estadoCargue !== 'Completado' && dp.fecha === hoyStr
+    );
+    if (!pendientes.length) {
+      // Verificar si hay viajes de hoy pero todos completados
+      const hoyTodos = d.despachos.filter(dp => dp.fecha === hoyStr);
+      if (hoyTodos.length) {
+        mostrarError('Los viajes de hoy para la placa ' + placa + ' ya están completados. ✅');
+      } else {
+        mostrarError('No hay viajes pendientes para la placa ' + placa + ' hoy.');
+      }
+      btn.disabled=false; btn.textContent='Buscar despachos'; return;
+    }
+    // Si un solo despacho pendiente — ir directo sin mostrar lista
+    if (pendientes.length===1) {
+      const dp=pendientes[0];
       window.location.href=`${BASE_URL}?id=${dp.id}&row=${dp.rowIndex}`;
       return;
     }
-    // Varios — mostrar lista
-    lista.innerHTML = d.despachos.map(dp=>{
+    // Varios pendientes — mostrar lista
+    lista.innerHTML = pendientes.map(dp=>{
       const url=`${BASE_URL}?id=${dp.id}&row=${dp.rowIndex}`;
-      const ec=dp.estadoCargue==='Completado'?'background:#E1F5EE;color:#085041':
-        ['En ruta','En retorno'].includes(dp.estadoCargue)?'background:#FEF3E2;color:#633806':
+      const ec=['En ruta','En retorno'].includes(dp.estadoCargue)?'background:#FEF3E2;color:#633806':
         'background:#E6F1FB;color:#0C447C';
       return `<a class="item" href="${url}">
         <div class="prot">Protocolo ${dp.protocolo}</div>
         <div class="info">${dp.conductor||'—'} · ${dp.cedi||'—'} · ${dp.turno||'—'}</div>
+        <div class="info" style="margin-top:2px">Turno: ${dp.turno||'—'} · Estado: <span style="font-weight:600">${dp.estadoCargue}</span></div>
         <span class="badge" style="${ec}">${dp.estadoCargue}</span>
       </a>`;
     }).join('');

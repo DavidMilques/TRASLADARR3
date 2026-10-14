@@ -12,29 +12,30 @@ body{background:var(--bg);color:#1a1a18}
 .topbar{background:var(--blue);color:white;padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:20}
 .topbar h1{font-size:16px;font-weight:600}
 .nav-link{background:rgba(255,255,255,.15);border:none;color:white;padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;text-decoration:none}
-.tabs{display:flex;border-bottom:1px solid var(--border);background:white;padding:0 20px;position:sticky;top:52px;z-index:10}
-.tab-btn{padding:10px 14px;font-size:12px;font-weight:500;color:var(--gray);cursor:pointer;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap}
-.tab-btn.sel{color:var(--blue);border-bottom-color:var(--blue)}
-.content{padding:16px 20px;max-width:1100px;margin:0 auto}
-.tab-pane{display:none}.tab-pane.active{display:block}
-.card{background:white;border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px}
-.card-title{font-size:13px;font-weight:600;color:var(--gray-t);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
-.filtros{background:white;border-bottom:1px solid var(--border);padding:10px 20px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;position:sticky;top:96px;z-index:9}
+.filtros{background:white;border-bottom:1px solid var(--border);padding:10px 20px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;position:sticky;top:52px;z-index:10}
 .filtros label{font-size:11px;font-weight:500;color:var(--gray)}
 .filtros input,.filtros select{padding:5px 8px;border:1px solid var(--border);border-radius:var(--rs);font-size:12px;outline:none}
 .filtros input:focus,.filtros select:focus{border-color:var(--blue)}
 .btn-consultar{padding:6px 14px;background:var(--blue);color:white;border:none;border-radius:var(--rs);font-size:12px;font-weight:500;cursor:pointer}
 .btn-consultar:hover{background:var(--blue-t)}
-/* KPI CARDS */
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:16px}
+.tabs{display:flex;border-bottom:1px solid var(--border);background:white;padding:0 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab-btn{padding:10px 12px;font-size:12px;font-weight:500;color:var(--gray);cursor:pointer;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap}
+.tab-btn.sel{color:var(--blue);border-bottom-color:var(--blue)}
+.content{padding:16px 20px;max-width:1100px;margin:0 auto}
+.tab-pane{display:none}.tab-pane.active{display:block}
+.card{background:white;border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.card-title{font-size:13px;font-weight:600;color:var(--gray-t);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:16px}
 .kpi{background:white;border:1px solid var(--border);border-radius:var(--r);padding:14px;text-align:center;position:relative;overflow:hidden}
 .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:4px}
-.kpi.blue::before{background:var(--blue)}
-.kpi.green::before{background:var(--green)}
-.kpi.amber::before{background:var(--amber)}
-.kpi.red::before{background:var(--red)}
-.kpi .val{font-size:24px;font-weight:700;margin-bottom:4px}
-.kpi .lbl{font-size:11px;color:var(--gray)}
+.kpi.blue::before{background:var(--blue)}.kpi.green::before{background:var(--green)}
+.kpi.amber::before{background:var(--amber)}.kpi.red::before{background:var(--red)}
+.kpi.purple::before{background:#7B5EA7}
+.kpi .val{font-size:22px;font-weight:700;margin-bottom:4px}
+.kpi .lbl{font-size:10px;color:var(--gray)}
+.kpi .sub{font-size:10px;color:var(--gray);margin-top:2px}
 /* TABLA */
 .tbl-wrap{overflow-x:auto;border-radius:var(--r);border:1px solid var(--border)}
 table{width:100%;border-collapse:collapse;font-size:12px}
@@ -44,19 +45,25 @@ tr:last-child td{border-bottom:none}
 tr:hover td{background:var(--bg)}
 /* RENDIMIENTO */
 .rend-card{background:white;border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:8px}
-.rend-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.rend-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px}
 .rend-placa{font-size:15px;font-weight:700;color:var(--gray-t)}
 .rend-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:10px;font-size:12px;font-weight:600}
 .rend-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin:6px 0}
 .rend-fill{height:100%;border-radius:4px;transition:width .5s}
-.rend-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+.rend-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin-top:8px}
 .rend-stat{text-align:center}
 .rend-stat .sv{font-size:14px;font-weight:700;color:var(--gray-t)}
 .rend-stat .sl{font-size:10px;color:var(--gray)}
-/* FOTO THUMBNAIL */
+/* RALENTI */
+.ralenti-pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.ralenti-ok{background:var(--green-l);color:var(--green-t)}
+.ralenti-warn{background:var(--amber-l);color:var(--amber-t)}
+.ralenti-bad{background:var(--red-l);color:var(--red-t)}
+/* CHIP TIPO RUTA */
+.tipo-chip{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:var(--blue-l);color:var(--blue-t)}
+/* FOTO */
 .foto-link{display:inline-flex;align-items:center;gap:4px;color:var(--blue);text-decoration:none;font-size:11px;padding:2px 6px;border-radius:4px;background:var(--blue-l)}
-.foto-link:hover{background:var(--blue)}
-.foto-link:hover{color:white}
+.foto-link:hover{background:var(--blue);color:white}
 /* LOADING */
 .loading{text-align:center;padding:30px;color:var(--gray);font-size:12px}
 .spinner{width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 8px}
@@ -65,6 +72,11 @@ tr:hover td{background:var(--bg)}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a1a18;color:white;padding:9px 16px;border-radius:20px;font-size:12px;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none}
 .toast.show{opacity:1}
 .export-btn{padding:5px 12px;background:var(--green-l);color:var(--green-t);border:1px solid var(--green);border-radius:var(--rs);font-size:11px;font-weight:500;cursor:pointer}
+/* INSIGHT BOX */
+.insight{background:var(--blue-l);border-left:4px solid var(--blue);border-radius:0 var(--rs) var(--rs) 0;padding:10px 14px;margin-bottom:10px;font-size:12px;line-height:1.5}
+.insight.warn{background:var(--amber-l);border-left-color:var(--amber)}
+.insight.green{background:var(--green-l);border-left-color:var(--green)}
+.insight.red{background:var(--red-l);border-left-color:var(--red)}
 </style>
 </head>
 <body>
@@ -72,7 +84,7 @@ tr:hover td{background:var(--bg)}
   <h1>⛽ Control de Combustible</h1>
   <div style="display:flex;gap:6px">
     <a class="nav-link" href="login.html">🏠 Inicio</a>
-    <a class="nav-link" href="dashboard.html">Dashboard</a>
+    <a class="nav-link" href="dashboard_v2.html">Dashboard</a>
   </div>
 </div>
 
@@ -80,135 +92,235 @@ tr:hover td{background:var(--bg)}
   <label>Desde</label><input type="date" id="f-desde">
   <label>Hasta</label><input type="date" id="f-hasta">
   <div><label>Placa</label><input type="text" id="f-placa" placeholder="Todas" style="width:90px;text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"></div>
-  <div><label>Conductor</label><input type="text" id="f-conductor" placeholder="Todos" style="width:120px"></div>
+  <div><label>Conductor</label><input type="text" id="f-conductor" placeholder="Todos" style="width:130px"></div>
   <button class="btn-consultar" onclick="cargar()">Consultar</button>
   <span id="f-info" style="font-size:11px;color:var(--gray)"></span>
 </div>
 
 <div class="tabs">
-  <button class="tab-btn sel" onclick="showTab('resumen',this)">Resumen</button>
-  <button class="tab-btn" onclick="showTab('rendimiento',this)">Rendimiento por placa</button>
-  <button class="tab-btn" onclick="showTab('conductores',this)">Por conductor</button>
-  <button class="tab-btn" onclick="showTab('historial',this)">Historial de tanqueos</button>
+  <button class="tab-btn sel" onclick="showTab('resumen',this)">📊 Resumen</button>
+  <button class="tab-btn" onclick="showTab('rendimiento',this)">🚛 Por placa</button>
+  <button class="tab-btn" onclick="showTab('ralenti',this)">⏱ Ralentí tiendas</button>
+  <button class="tab-btn" onclick="showTab('tiporuta',this)">🗺️ Tipo de ruta</button>
+  <button class="tab-btn" onclick="showTab('viajes',this)">📋 Viajes</button>
+  <button class="tab-btn" onclick="showTab('conductores',this)">👤 Conductores</button>
+  <button class="tab-btn" onclick="showTab('historial',this)">🧾 Historial</button>
 </div>
 
 <div class="content">
 
-  <!-- RESUMEN -->
+  <!-- ══ RESUMEN ══════════════════════════════════════════════ -->
   <div id="tab-resumen" class="tab-pane active">
-    <div class="loading" id="load-resumen"><div class="spinner"></div>Carga el período con el botón Consultar</div>
+    <div class="loading" id="load-resumen"><div class="spinner"></div>Cargando...</div>
     <div id="cont-resumen" style="display:none">
       <div class="kpi-grid" id="kpi-grid"></div>
       <div class="card">
-        <div class="card-title">Evolución de tanqueos</div>
+        <div class="card-title">Evolución de tanqueos (galones)</div>
         <div style="position:relative;height:200px"><canvas id="chart-evol"></canvas></div>
+      </div>
+      <div class="card" id="card-insights" style="display:none">
+        <div class="card-title">🔍 Hallazgos automáticos</div>
+        <div id="insights-body"></div>
       </div>
     </div>
   </div>
 
-  <!-- RENDIMIENTO POR PLACA -->
+  <!-- ══ POR PLACA ════════════════════════════════════════════ -->
   <div id="tab-rendimiento" class="tab-pane">
     <div id="cont-rendimiento" class="loading">Consulta un período primero</div>
   </div>
 
-  <!-- POR CONDUCTOR -->
-  <div id="tab-conductores" class="tab-pane">
-    <div class="card" style="padding:0;overflow:hidden">
-      <div style="padding:12px 16px;font-size:13px;font-weight:600;color:var(--gray-t);display:flex;justify-content:space-between;align-items:center">
-        Consumo por conductor
-        <button class="export-btn" onclick="exportarCSV()">Exportar CSV</button>
+  <!-- ══ RALENTÍ EN TIENDAS ══════════════════════════════════ -->
+  <div id="tab-ralenti" class="tab-pane">
+    <div class="insight">
+      <strong>¿Qué es el tiempo de ralentí?</strong> Es el tiempo que el vehículo permanece en la tienda desde que llega hasta que sale. Durante ese tiempo el motor está en ralentí consumiendo combustible sin avanzar kilómetros. Menos tiempo en tienda = mejor rendimiento real.
+    </div>
+    <div class="kpi-grid" id="kpi-ralenti"></div>
+    <div class="card">
+      <div class="card-title">Tiempo promedio en tienda por placa
+        <button class="export-btn" onclick="exportarRalentiCSV()">Exportar CSV</button>
       </div>
-      <div class="tbl-wrap"><table>
-        <thead><tr><th>Conductor</th><th>Tanqueos</th><th>Total galones</th><th>Total $</th><th>Km recorridos</th><th>Rendimiento prom.</th><th>Placas operadas</th></tr></thead>
-        <tbody id="tbody-conductores"></tbody>
-      </table></div>
+      <div style="position:relative;height:220px;margin-bottom:16px"><canvas id="chart-ralenti"></canvas></div>
+      <div id="cont-ralenti-tabla"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Detalle por viaje — tiempos en tiendas</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Fecha</th><th>Placa</th><th>Conductor</th><th>Turno</th><th>Tiendas</th><th>Tiempo total ralentí</th><th>Prom. por tienda</th><th>Km ruta</th></tr></thead>
+          <tbody id="tbody-ralenti"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
-  <!-- HISTORIAL -->
+  <!-- ══ TIPO DE RUTA ═════════════════════════════════════════ -->
+  <div id="tab-tiporuta" class="tab-pane">
+    <div class="insight warn">
+      <strong>Análisis urbano vs. interurbano:</strong> Los viajes urbanos (mayor número de tiendas, más stop-and-go y ralentí) típicamente tienen menor rendimiento que los interurbanos. Este análisis lo confirma o refuta con datos reales de tu flota.
+    </div>
+    <div class="kpi-grid" id="kpi-tiporuta"></div>
+    <div class="card">
+      <div class="card-title">Rendimiento por tipo de ruta (km/gal estimado)</div>
+      <div style="position:relative;height:220px"><canvas id="chart-tiporuta"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Comparativo detallado por tipo de turno/ruta</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Tipo de ruta / turno</th><th>Viajes</th><th>Placas</th><th>Km total</th><th>Km prom. por viaje</th><th>Tiendas prom.</th><th>Ralentí prom. (min)</th><th>% tiempo ralentí</th></tr></thead>
+          <tbody id="tbody-tiporuta"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card" id="card-conclusion-ruta" style="display:none">
+      <div class="card-title">💡 Conclusión del análisis</div>
+      <div id="conclusion-ruta"></div>
+    </div>
+  </div>
+
+  <!-- ══ VIAJES ═══════════════════════════════════════════════ -->
+  <div id="tab-viajes" class="tab-pane">
+    <div class="kpi-grid" id="kpi-viajes"></div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="padding:12px 16px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:13px;font-weight:600;color:var(--gray-t)">Viajes completados en el período</span>
+        <button class="export-btn" onclick="exportarViajesCSV()">Exportar CSV</button>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Fecha</th><th>Protocolo</th><th>Placa</th><th>Conductor</th><th>Turno/Ruta</th><th>Tiendas</th><th>Km ruta</th><th>Ralentí total</th><th>Prom. tienda</th></tr></thead>
+          <tbody id="tbody-viajes"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CONDUCTORES ══════════════════════════════════════════ -->
+  <div id="tab-conductores" class="tab-pane">
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="padding:12px 16px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:13px;font-weight:600;color:var(--gray-t)">Análisis integral por conductor</span>
+        <button class="export-btn" onclick="exportarCSV()">Exportar CSV</button>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Conductor</th><th>Tanqueos</th><th>Galones</th><th>Valor total</th><th>Km (tanqueos)</th><th>Rendimiento</th><th>Viajes</th><th>Km (viajes)</th><th>Ralentí prom.</th><th>Placas</th></tr></thead>
+          <tbody id="tbody-conductores"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ HISTORIAL ════════════════════════════════════════════ -->
   <div id="tab-historial" class="tab-pane">
     <div class="card" style="padding:0;overflow:hidden">
       <div style="padding:12px 16px;font-size:13px;font-weight:600;color:var(--gray-t)">Historial de tanqueos</div>
-      <div class="tbl-wrap"><table>
-        <thead><tr><th>Fecha</th><th>Hora</th><th>Placa</th><th>Conductor</th><th>Protocolo</th><th>Km odómetro</th><th>Galones</th><th>Rendimiento</th><th>Estación</th><th>Valor</th><th>Fotos</th></tr></thead>
-        <tbody id="tbody-historial"></tbody>
-      </table></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Fecha</th><th>Hora</th><th>Placa</th><th>Conductor</th><th>Protocolo</th><th>Km odómetro</th><th>Galones</th><th>Rendimiento</th><th>Estación</th><th>Valor</th><th>Fotos</th></tr></thead>
+          <tbody id="tbody-historial"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
-</div>
-
+</div><!-- /content -->
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbxTx_FuM2-1AcyB3fB2uHPBP1E1hc109v4R_heX3M_DTO-LsQdGS1EBwlt_32ijyXAg/exec';
-let datos = [];
-let chartEvol = null;
+const API_URL = 'https://script.google.com/macros/s/AKfycbz0WRCoH06LZoN8KlOpTCQsTzhHze6IxbbMKZICvh7cjcEMuskA3Db-dKIFy8UxkySK/exec';
+
+let datos     = [];   // tanqueos
+let analisis  = null; // análisis integral (viajes, ralentí, tipo ruta)
+let chartEvol = null, chartRalenti = null, chartTipoRuta = null;
 
 window.addEventListener('DOMContentLoaded', () => {
-  const hoy  = new Date();
+  const hoy   = new Date();
   const hace30 = new Date(hoy); hace30.setDate(hoy.getDate()-30);
   document.getElementById('f-desde').value = fi(hace30);
   document.getElementById('f-hasta').value = fi(hoy);
-  // Cargar automáticamente al abrir
   cargar();
 });
 
 function fi(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function fmtApi(iso){ if(!iso)return''; const[y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; }
+function minHora(h){ if(!h)return 0; const[hh,mm]=(h||'').split(':').map(Number); return hh*60+mm; }
+function fmtMin(m){ if(!m||m<=0)return'—'; const h=Math.floor(m/60),mn=m%60; return h>0?`${h}h ${mn}m`:`${mn} min`; }
+function colorRend(r){ return r>=8?'var(--green-t)':r>=5?'var(--amber-t)':'var(--red-t)'; }
+function badgeRend(r){ return r>=8?'background:#E1F5EE;color:#085041':r>=5?'background:#FAEEDA;color:#633806':'background:#FCEBEB;color:#791F1F'; }
+function ralentiColor(m){ return m<=30?'ralenti-ok':m<=60?'ralenti-warn':'ralenti-bad'; }
 
+// ── CARGA PRINCIPAL ──────────────────────────────────────────────
 async function cargar() {
   const desde = fmtApi(document.getElementById('f-desde').value);
   const hasta  = fmtApi(document.getElementById('f-hasta').value);
   const placa  = document.getElementById('f-placa').value.trim();
   const cond   = document.getElementById('f-conductor').value.trim();
   document.getElementById('f-info').textContent = 'Cargando...';
-  document.getElementById('load-resumen').style.display  = 'block';
-  document.getElementById('cont-resumen').style.display  = 'none';
+  document.getElementById('load-resumen').style.display = 'block';
+  document.getElementById('cont-resumen').style.display = 'none';
 
-  let url = `${API_URL}?action=getTanqueos&fechaDesde=${desde}&fechaHasta=${hasta}`;
-  if (placa) url += `&placa=${encodeURIComponent(placa)}`;
-
+  // Llamadas en paralelo
+  const params = `fechaDesde=${desde}&fechaHasta=${hasta}${placa?'&placa='+encodeURIComponent(placa):''}`;
   try {
-    const r = await fetch(url);
-    const d = await r.json();
-    if (d.error) throw new Error(d.error);
-    datos = d.tanqueos || [];
-    // Filtrar por conductor si aplica
-    if (cond) datos = datos.filter(t => (t.conductor||'').toLowerCase().includes(cond.toLowerCase()));
-    document.getElementById('f-info').textContent = `${datos.length} tanqueos · ${desde} → ${hasta}`;
+    const [rTanq, rAnal] = await Promise.all([
+      fetch(`${API_URL}?action=getTanqueos&${params}`).then(r=>r.json()),
+      fetch(`${API_URL}?action=getAnalisisCombustible&${params}`).then(r=>r.json())
+    ]);
+    if (rTanq.error) throw new Error(rTanq.error);
+    datos = rTanq.tanqueos || [];
+    if (cond) datos = datos.filter(t=>(t.conductor||'').toLowerCase().includes(cond.toLowerCase()));
+    analisis = rAnal.ok ? rAnal : null;
+    if (analisis && cond) {
+      analisis.despachos      = (analisis.despachos||[]).filter(d=>(d.conductor||'').toLowerCase().includes(cond.toLowerCase()));
+      analisis.ralentiPorPlaca= (analisis.ralentiPorPlaca||[]);
+      analisis.porConductor   = (analisis.porConductor||[]).filter(c=>c.conductor.toLowerCase().includes(cond.toLowerCase()));
+    }
+    document.getElementById('f-info').textContent = `${datos.length} tanqueos · ${(analisis?.totalDespachos||0)} viajes · ${desde} → ${hasta}`;
   } catch(e) {
     datos = demoTanqueos();
-    document.getElementById('f-info').textContent = 'Modo demo';
+    analisis = demoAnalisis();
+    document.getElementById('f-info').textContent = 'Modo demo — sin conexión';
     toast('Sin conexión — datos de ejemplo');
   }
 
-  document.getElementById('load-resumen').style.display  = 'none';
-  document.getElementById('cont-resumen').style.display  = 'block';
+  document.getElementById('load-resumen').style.display = 'none';
+  document.getElementById('cont-resumen').style.display = 'block';
   renderResumen();
   renderRendimiento();
+  renderRalenti();
+  renderTipoRuta();
+  renderViajes();
   renderConductores();
   renderHistorial();
 }
 
-// ── RESUMEN ───────────────────────────────────────────────────────
+// ── RESUMEN ──────────────────────────────────────────────────────
 function renderResumen() {
   const totalGalones = datos.reduce((s,t)=>s+t.galones,0);
   const totalValor   = datos.reduce((s,t)=>s+t.valor,0);
   const placas       = new Set(datos.map(t=>t.placa)).size;
-  // Calcular rendimiento promedio por placa
-  const rends = calcRendimientos();
-  const rendProm = rends.length ? (rends.reduce((s,r)=>s+r.rendimiento,0)/rends.length) : 0;
+  const rends        = calcRendimientos();
+  const rendProm     = rends.length ? rends.reduce((s,r)=>s+r.rendimiento,0)/rends.length : 0;
+  const totalViajes  = analisis?.totalDespachos || 0;
+  const despachos    = analisis?.despachos || [];
+  const totalKmViajes= despachos.reduce((s,d)=>s+(d.km||0),0);
+  const totalRalenti = despachos.reduce((s,d)=>s+(d.tiempoRalentiMin||0),0);
+  const promRalenti  = despachos.length ? Math.round(totalRalenti/despachos.length) : 0;
 
   document.getElementById('kpi-grid').innerHTML = `
     <div class="kpi blue"><div class="val">${datos.length}</div><div class="lbl">Tanqueos registrados</div></div>
     <div class="kpi green"><div class="val">${totalGalones.toFixed(1)}</div><div class="lbl">Galones totales</div></div>
-    <div class="kpi amber"><div class="val">${totalValor>0?'$'+Math.round(totalValor).toLocaleString('es-CO'):'—'}</div><div class="lbl">Valor total</div></div>
-    <div class="kpi blue"><div class="val">${placas}</div><div class="lbl">Placas</div></div>
-    <div class="kpi green"><div class="val">${rendProm>0?rendProm.toFixed(1)+' km/gal':'—'}</div><div class="lbl">Rendimiento promedio</div></div>`;
+    <div class="kpi amber"><div class="val">${totalValor>0?'$'+Math.round(totalValor/1000)+'K':'—'}</div><div class="lbl">Valor total</div></div>
+    <div class="kpi blue"><div class="val">${placas}</div><div class="lbl">Placas activas</div></div>
+    <div class="kpi green"><div class="val">${rendProm>0?rendProm.toFixed(1)+' km/gal':'—'}</div><div class="lbl">Rendimiento promedio</div></div>
+    <div class="kpi blue"><div class="val">${totalViajes}</div><div class="lbl">Viajes completados</div></div>
+    <div class="kpi amber"><div class="val">${totalKmViajes>0?Math.round(totalKmViajes).toLocaleString('es-CO'):' —'} km</div><div class="lbl">Km totales (viajes)</div></div>
+    <div class="kpi ${promRalenti>60?'red':promRalenti>30?'amber':'green'}"><div class="val">${fmtMin(promRalenti)}</div><div class="lbl">Ralentí prom. por viaje</div></div>`;
 
-  // Gráfica evolución
+  // Gráfica evolución galones
   const porFecha = {};
   datos.forEach(t => {
     if (!porFecha[t.fecha]) porFecha[t.fecha] = { galones:0, count:0 };
@@ -219,21 +331,60 @@ function renderResumen() {
     const pa=a.split('/'),pb=b.split('/');
     return new Date(pa[2],pa[1]-1,pa[0])-new Date(pb[2],pb[1]-1,pb[0]);
   });
-  const labels  = fechas.map(f=>f.substring(0,5));
-  const galones = fechas.map(f=>porFecha[f].galones.toFixed(1));
-
   if (chartEvol) chartEvol.destroy();
   chartEvol = new Chart(document.getElementById('chart-evol'), {
     type:'bar',
-    data:{ labels, datasets:[{ label:'Galones', data:galones,
-      backgroundColor:'#185FA5CC', borderRadius:4 }] },
+    data:{ labels:fechas.map(f=>f.substring(0,5)),
+      datasets:[{ label:'Galones', data:fechas.map(f=>porFecha[f].galones.toFixed(1)),
+        backgroundColor:'#185FA5CC', borderRadius:4 }] },
     options:{ plugins:{legend:{display:false}},
-      scales:{ x:{grid:{display:false}}, y:{beginAtZero:true} },
+      scales:{x:{grid:{display:false}},y:{beginAtZero:true}},
       maintainAspectRatio:false, responsive:true }
   });
+
+  // Hallazgos automáticos
+  generarInsights();
 }
 
-// ── RENDIMIENTO POR PLACA ─────────────────────────────────────────
+function generarInsights() {
+  const despachos = analisis?.despachos || [];
+  const insights  = [];
+
+  // Rendimiento peor placa
+  const rends = calcRendimientos().filter(r=>r.rendimiento>0);
+  if (rends.length > 1) {
+    const peor = rends[rends.length-1];
+    const mejor= rends[0];
+    if (peor.rendimiento < mejor.rendimiento * 0.7) {
+      insights.push({ tipo:'warn', txt:`🚨 <strong>${peor.placa}</strong> tiene el rendimiento más bajo (${peor.rendimiento.toFixed(1)} km/gal), un <strong>${Math.round((1-peor.rendimiento/mejor.rendimiento)*100)}% menos</strong> que ${mejor.placa} (${mejor.rendimiento.toFixed(1)} km/gal). Revisar mantenimiento o conducción.` });
+    }
+  }
+
+  // Ralentí excesivo
+  const conRalenti = despachos.filter(d=>d.tiempoRalentiMin>90);
+  if (conRalenti.length > 0) {
+    const pct = Math.round(conRalenti.length/despachos.length*100);
+    insights.push({ tipo:'warn', txt:`⏱ <strong>${conRalenti.length} viaje(s) (${pct}%)</strong> tuvieron más de 90 min de ralentí en tiendas. El motor en ralentí consume ~2-4 litros/hora sin avanzar km, lo que distorsiona el rendimiento real.` });
+  }
+
+  // Comparar tipos de ruta
+  const porTipo = analisis?.porTipoRuta || [];
+  if (porTipo.length >= 2) {
+    const conKm = porTipo.filter(t=>t.totalKm>0 && t.viajes>=2);
+    if (conKm.length >= 2) {
+      const kmProm = conKm.map(t=>({ tipo:t.tipo, prom:t.totalKm/t.viajes })).sort((a,b)=>b.prom-a.prom);
+      insights.push({ tipo:'blue', txt:`🗺️ El tipo de ruta <strong>${kmProm[0].tipo}</strong> recorre en promedio <strong>${Math.round(kmProm[0].prom).toLocaleString('es-CO')} km por viaje</strong>, vs ${Math.round(kmProm[kmProm.length-1].prom).toLocaleString('es-CO')} km en <strong>${kmProm[kmProm.length-1].tipo}</strong>. Mayor recorrido generalmente = mejor rendimiento km/gal.` });
+    }
+  }
+
+  if (!insights.length) { document.getElementById('card-insights').style.display='none'; return; }
+  document.getElementById('card-insights').style.display='block';
+  document.getElementById('insights-body').innerHTML = insights.map(i=>
+    `<div class="insight ${i.tipo}" style="margin-bottom:8px">${i.txt}</div>`
+  ).join('');
+}
+
+// ── RENDIMIENTO POR PLACA ────────────────────────────────────────
 function calcRendimientos() {
   const porPlaca = {};
   datos.forEach(t => {
@@ -242,28 +393,31 @@ function calcRendimientos() {
     if (t.conductor) porPlaca[t.placa].conductores.add(t.conductor);
     if (t.protocolo) porPlaca[t.placa].protocolos.add(t.protocolo);
   });
-
   return Object.values(porPlaca).map(p => {
     const tqs = p.tanqueos.sort((a,b)=>a.km-b.km);
     let kmTotal=0, galTotal=0, rendimientos=[];
     for (let i=1;i<tqs.length;i++){
-      const kmRecorridos = tqs[i].km - tqs[i-1].km;
-      if (kmRecorridos>0 && tqs[i-1].galones>0){
-        const rend = kmRecorridos/tqs[i-1].galones;
-        rendimientos.push(rend);
-        kmTotal += kmRecorridos;
-        galTotal += tqs[i-1].galones;
+      const kmRec = tqs[i].km - tqs[i-1].km;
+      if (kmRec>0 && tqs[i-1].galones>0){
+        rendimientos.push(kmRec/tqs[i-1].galones);
+        kmTotal += kmRec; galTotal += tqs[i-1].galones;
       }
     }
-    const rendProm = rendimientos.length ? rendimientos.reduce((s,r)=>s+r,0)/rendimientos.length : 0;
+    // Datos de viajes para esta placa
+    const viajesPlaca = (analisis?.despachos||[]).filter(d=>d.placa===p.placa);
+    const totalRalenti = viajesPlaca.reduce((s,d)=>s+(d.tiempoRalentiMin||0),0);
+    const promRal = viajesPlaca.length ? Math.round(totalRalenti/viajesPlaca.length) : 0;
     return {
       placa: p.placa,
       tanqueos: tqs.length,
       galTotal: tqs.reduce((s,t)=>s+t.galones,0),
       kmTotal,
-      rendimiento: rendProm,
+      rendimiento: rendimientos.length ? rendimientos.reduce((s,r)=>s+r,0)/rendimientos.length : 0,
       conductores: [...p.conductores],
-      protocolos: p.protocolos.size
+      protocolos: p.protocolos.size,
+      viajes: viajesPlaca.length,
+      kmViajes: viajesPlaca.reduce((s,d)=>s+(d.km||0),0),
+      promRalentiMin: promRal
     };
   }).sort((a,b)=>b.rendimiento-a.rendimiento);
 }
@@ -271,118 +425,334 @@ function calcRendimientos() {
 function renderRendimiento() {
   const rends = calcRendimientos();
   const cont  = document.getElementById('cont-rendimiento');
-  if (!rends.length) { cont.innerHTML='<div class="empty">Sin datos</div>'; return; }
+  if (!rends.length) { cont.innerHTML='<div class="empty">Sin datos en el período seleccionado</div>'; return; }
   const maxRend = Math.max(...rends.map(r=>r.rendimiento),1);
-
   cont.innerHTML = rends.map(r => {
     const pct   = r.rendimiento>0 ? Math.round(r.rendimiento/maxRend*100) : 0;
     const color = r.rendimiento>=8?'var(--green)':r.rendimiento>=5?'var(--amber)':'var(--red)';
-    const bcls  = r.rendimiento>=8?'background:#E1F5EE;color:#085041':r.rendimiento>=5?'background:#FAEEDA;color:#633806':'background:#FCEBEB;color:#791F1F';
     return `<div class="rend-card">
       <div class="rend-header">
         <span class="rend-placa">${r.placa}</span>
-        <span class="rend-badge" style="${bcls}">${r.rendimiento>0?r.rendimiento.toFixed(1)+' km/gal':'Sin datos'}</span>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          ${r.promRalentiMin>0?`<span class="ralenti-pill ${ralentiColor(r.promRalentiMin)}">⏱ ${fmtMin(r.promRalentiMin)} ralentí/viaje</span>`:''}
+          <span class="rend-badge" style="${badgeRend(r.rendimiento)}">${r.rendimiento>0?r.rendimiento.toFixed(1)+' km/gal':'Sin datos'}</span>
+        </div>
       </div>
       <div class="rend-bar"><div class="rend-fill" style="width:${pct}%;background:${color}"></div></div>
       <div class="rend-stats">
         <div class="rend-stat"><div class="sv">${r.tanqueos}</div><div class="sl">Tanqueos</div></div>
         <div class="rend-stat"><div class="sv">${r.galTotal.toFixed(1)}</div><div class="sl">Galones</div></div>
-        <div class="rend-stat"><div class="sv">${r.kmTotal>0?Math.round(r.kmTotal).toLocaleString('es-CO'):'—'}</div><div class="sl">Km recorridos</div></div>
-        <div class="rend-stat"><div class="sv">${r.protocolos}</div><div class="sl">Viajes</div></div>
+        <div class="rend-stat"><div class="sv">${r.kmTotal>0?Math.round(r.kmTotal).toLocaleString('es-CO'):'—'}</div><div class="sl">Km (odómetro)</div></div>
+        <div class="rend-stat"><div class="sv">${r.viajes||0}</div><div class="sl">Viajes</div></div>
+        <div class="rend-stat"><div class="sv">${r.kmViajes>0?Math.round(r.kmViajes).toLocaleString('es-CO'):'—'}</div><div class="sl">Km (rutas)</div></div>
+        <div class="rend-stat"><div class="sv">${fmtMin(r.promRalentiMin)}</div><div class="sl">Ralentí prom.</div></div>
       </div>
       <div style="font-size:10px;color:var(--gray);margin-top:6px">Conductores: ${r.conductores.join(', ')||'—'}</div>
     </div>`;
   }).join('');
 }
 
-// ── POR CONDUCTOR ─────────────────────────────────────────────────
-function renderConductores() {
-  const porCond = {};
-  datos.forEach(t => {
-    const c = t.conductor||'Sin nombre';
-    if (!porCond[c]) porCond[c] = { conductor:c, tanqueos:0, galones:0, valor:0, kms:[], placas:new Set() };
-    porCond[c].tanqueos++;
-    porCond[c].galones += t.galones;
-    porCond[c].valor   += t.valor;
-    porCond[c].kms.push(t.km);
-    if (t.placa) porCond[c].placas.add(t.placa);
+// ── RALENTÍ EN TIENDAS ───────────────────────────────────────────
+function renderRalenti() {
+  const despachos = analisis?.despachos || [];
+  if (!despachos.length) {
+    document.getElementById('kpi-ralenti').innerHTML = '<div class="empty" style="grid-column:1/-1">Sin datos de viajes. Consulta el período.</div>';
+    document.getElementById('cont-ralenti-tabla').innerHTML = '';
+    document.getElementById('tbody-ralenti').innerHTML = '<tr><td colspan="8" class="empty">Sin datos</td></tr>';
+    return;
+  }
+
+  const totalRal = despachos.reduce((s,d)=>s+(d.tiempoRalentiMin||0),0);
+  const promRal  = Math.round(totalRal/despachos.length);
+  const maxRal   = Math.max(...despachos.map(d=>d.tiempoRalentiMin||0));
+  const conDatos = despachos.filter(d=>d.tiempoRalentiMin>0).length;
+  const pct      = despachos.length ? Math.round(conDatos/despachos.length*100) : 0;
+
+  document.getElementById('kpi-ralenti').innerHTML = `
+    <div class="kpi ${promRal>60?'red':promRal>30?'amber':'green'}">
+      <div class="val">${fmtMin(promRal)}</div><div class="lbl">Ralentí promedio por viaje</div></div>
+    <div class="kpi amber"><div class="val">${fmtMin(totalRal)}</div><div class="lbl">Tiempo total en tiendas</div></div>
+    <div class="kpi red"><div class="val">${fmtMin(maxRal)}</div><div class="lbl">Máximo registrado</div></div>
+    <div class="kpi blue"><div class="val">${pct}%</div><div class="lbl">Viajes con dato registrado</div></div>`;
+
+  // Gráfica por placa
+  const porPlaca = analisis?.ralentiPorPlaca || [];
+  const labels   = porPlaca.map(p=>p.placa);
+  const promsRal = porPlaca.map(p=>p.viajes>0?Math.round(p.totalRalentiMin/p.viajes):0);
+
+  if (chartRalenti) chartRalenti.destroy();
+  chartRalenti = new Chart(document.getElementById('chart-ralenti'), {
+    type:'bar',
+    data:{ labels, datasets:[{
+      label:'Ralentí prom. (min)',
+      data: promsRal,
+      backgroundColor: promsRal.map(m=>m>60?'#E24B4ACC':m>30?'#BA7517CC':'#1D9E75CC'),
+      borderRadius:4
+    }]},
+    options:{ plugins:{legend:{display:false}},
+      scales:{x:{grid:{display:false}},y:{beginAtZero:true,title:{display:true,text:'Minutos promedio'}}},
+      maintainAspectRatio:false, responsive:true }
   });
 
-  const lista = Object.values(porCond).sort((a,b)=>b.galones-a.galones);
+  // Tabla por placa
+  document.getElementById('cont-ralenti-tabla').innerHTML = `
+    <div class="tbl-wrap" style="margin-top:12px">
+      <table><thead><tr><th>Placa</th><th>Viajes</th><th>Tiendas visitadas</th><th>Ralentí total</th><th>Ralentí promedio</th><th>Km en rutas</th><th>Conductores</th></tr></thead>
+      <tbody>${porPlaca.sort((a,b)=>b.totalRalentiMin/b.viajes-a.totalRalentiMin/a.viajes).map(p=>{
+        const prom = p.viajes>0?Math.round(p.totalRalentiMin/p.viajes):0;
+        return `<tr>
+          <td style="font-weight:700">${p.placa}</td>
+          <td style="text-align:center">${p.viajes}</td>
+          <td style="text-align:center">${p.tiendas}</td>
+          <td>${fmtMin(p.totalRalentiMin)}</td>
+          <td><span class="ralenti-pill ${ralentiColor(prom)}">${fmtMin(prom)}</span></td>
+          <td>${p.totalKm>0?Math.round(p.totalKm).toLocaleString('es-CO')+' km':'—'}</td>
+          <td style="font-size:10px">${(p.conductores||[]).join(', ')||'—'}</td>
+        </tr>`;
+      }).join('')}</tbody></table></div>`;
+
+  // Tabla detalle por viaje
+  document.getElementById('tbody-ralenti').innerHTML = [...despachos]
+    .sort((a,b)=>(b.tiempoRalentiMin||0)-(a.tiempoRalentiMin||0))
+    .map(d=>{
+      const prom = d.numTiendas>0&&d.tiempoRalentiMin>0?Math.round(d.tiempoRalentiMin/d.numTiendas):0;
+      return `<tr>
+        <td>${d.fecha}</td>
+        <td style="font-weight:700">${d.placa}</td>
+        <td style="font-size:11px">${d.conductor||'—'}</td>
+        <td><span class="tipo-chip">${d.turno||'—'}</span></td>
+        <td style="text-align:center">${d.numTiendas||'—'}</td>
+        <td><span class="ralenti-pill ${ralentiColor(d.tiempoRalentiMin||0)}">${fmtMin(d.tiempoRalentiMin)}</span></td>
+        <td>${prom>0?fmtMin(prom):'—'}</td>
+        <td>${d.km>0?Math.round(d.km).toLocaleString('es-CO')+' km':'—'}</td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="8" class="empty">Sin datos</td></tr>';
+}
+
+// ── TIPO DE RUTA ─────────────────────────────────────────────────
+function renderTipoRuta() {
+  const porTipo = analisis?.porTipoRuta || [];
+  if (!porTipo.length) {
+    document.getElementById('kpi-tiporuta').innerHTML='<div class="empty" style="grid-column:1/-1">Sin datos de viajes.</div>';
+    return;
+  }
+
+  const tipos = porTipo.sort((a,b)=>b.viajes-a.viajes);
+
+  // KPIs por tipo
+  const colores = ['blue','green','amber','red','purple'];
+  document.getElementById('kpi-tiporuta').innerHTML = tipos.map((t,i)=>`
+    <div class="kpi ${colores[i%colores.length]}">
+      <div class="val">${t.viajes}</div>
+      <div class="lbl">${t.tipo}</div>
+      <div class="sub">${Math.round(t.totalKm/t.viajes||0).toLocaleString('es-CO')} km prom.</div>
+    </div>`).join('');
+
+  // Gráfica: km promedio por tipo de ruta
+  const paleta = ['#185FA5','#1D9E75','#BA7517','#E24B4A','#7B5EA7'];
+  if (chartTipoRuta) chartTipoRuta.destroy();
+  chartTipoRuta = new Chart(document.getElementById('chart-tiporuta'), {
+    type:'bar',
+    data:{
+      labels: tipos.map(t=>t.tipo),
+      datasets:[
+        { label:'Km prom./viaje', data:tipos.map(t=>Math.round(t.totalKm/t.viajes||0)),
+          backgroundColor: tipos.map((_,i)=>paleta[i%paleta.length]+'CC'), borderRadius:4 },
+        { label:'Ralentí prom. (min)', data:tipos.map(t=>Math.round(t.totalRalentiMin/t.viajes||0)),
+          backgroundColor: tipos.map((_,i)=>paleta[i%paleta.length]+'55'),
+          borderColor:     tipos.map((_,i)=>paleta[i%paleta.length]),
+          borderWidth:1.5, borderRadius:4, type:'bar' }
+      ]
+    },
+    options:{ plugins:{legend:{position:'top'}},
+      scales:{x:{grid:{display:false}},y:{beginAtZero:true}},
+      maintainAspectRatio:false, responsive:true }
+  });
+
+  // Tabla comparativa
+  document.getElementById('tbody-tiporuta').innerHTML = tipos.map(t=>{
+    const kmProm  = t.viajes>0?Math.round(t.totalKm/t.viajes):0;
+    const tProm   = t.viajes>0?Math.round(t.totalRalentiMin/t.viajes):0;
+    const tiProm  = t.viajes>0?(t.tiendas/t.viajes).toFixed(1):'—';
+    // Estimar % tiempo ralentí (asume 50 km/h promedio en movimiento)
+    const minEnMovimiento = kmProm>0 ? Math.round(kmProm/50*60) : 0;
+    const pctRal = minEnMovimiento>0 ? Math.round(tProm/(tProm+minEnMovimiento)*100) : 0;
+    return `<tr>
+      <td><span class="tipo-chip" style="font-size:12px;padding:3px 10px">${t.tipo}</span></td>
+      <td style="text-align:center;font-weight:600">${t.viajes}</td>
+      <td style="text-align:center">${(t.placas||[]).length}</td>
+      <td>${Math.round(t.totalKm).toLocaleString('es-CO')} km</td>
+      <td style="font-weight:600">${kmProm.toLocaleString('es-CO')} km</td>
+      <td>${tiProm} tiendas</td>
+      <td><span class="ralenti-pill ${ralentiColor(tProm)}">${fmtMin(tProm)}</span></td>
+      <td style="font-weight:600;color:${pctRal>30?'var(--red-t)':pctRal>15?'var(--amber-t)':'var(--green-t)'}">${pctRal>0?pctRal+'%':'—'}</td>
+    </tr>`;
+  }).join('');
+
+  // Conclusión automática
+  if (tipos.length >= 2) {
+    const conKm = tipos.filter(t=>t.viajes>=2&&t.totalKm>0);
+    if (conKm.length >= 2) {
+      const mayor = conKm.reduce((a,b)=>b.totalKm/b.viajes>a.totalKm/a.viajes?b:a);
+      const menor = conKm.reduce((a,b)=>b.totalKm/b.viajes<a.totalKm/a.viajes?b:a);
+      const mayorRal = conKm.reduce((a,b)=>b.totalRalentiMin/b.viajes>a.totalRalentiMin/a.viajes?b:a);
+      document.getElementById('card-conclusion-ruta').style.display='block';
+      document.getElementById('conclusion-ruta').innerHTML = `
+        <div class="insight green" style="margin-bottom:8px">
+          ✅ <strong>${mayor.tipo}</strong> recorre en promedio <strong>${Math.round(mayor.totalKm/mayor.viajes).toLocaleString('es-CO')} km por viaje</strong>, el mayor de los tipos analizados. Rutas más largas suelen tener mejor rendimiento porque el motor trabaja en condiciones óptimas de velocidad.
+        </div>
+        <div class="insight warn" style="margin-bottom:8px">
+          ⏱ <strong>${mayorRal.tipo}</strong> registra el mayor tiempo de ralentí promedio (<strong>${fmtMin(Math.round(mayorRal.totalRalentiMin/mayorRal.viajes))}</strong> por viaje). El ralentí excesivo eleva el consumo real sin sumar kilómetros al odómetro.
+        </div>
+        <div class="insight" style="margin-bottom:0">
+          💡 <strong>Recomendación:</strong> Para conductores que manifiestan que viajes urbanos consumen más, estos datos ${mayorRal.tipo.toLowerCase().includes('urbano')||mayorRal.tipo.toLowerCase().includes('diurno')?'<strong>lo confirman</strong>':'no muestran diferencia significativa por tipo de turno'}. El análisis de ralentí es la clave: a igualdad de km recorridos, más tiendas = más ralentí = más consumo aparente.
+        </div>`;
+    }
+  }
+}
+
+// ── VIAJES ───────────────────────────────────────────────────────
+function renderViajes() {
+  const despachos = analisis?.despachos || [];
+  const totalKm   = despachos.reduce((s,d)=>s+(d.km||0),0);
+  const totalRal  = despachos.reduce((s,d)=>s+(d.tiempoRalentiMin||0),0);
+  const placas    = new Set(despachos.map(d=>d.placa)).size;
+  const condSet   = new Set(despachos.map(d=>d.conductor).filter(Boolean)).size;
+
+  document.getElementById('kpi-viajes').innerHTML = `
+    <div class="kpi blue"><div class="val">${despachos.length}</div><div class="lbl">Viajes completados</div></div>
+    <div class="kpi green"><div class="val">${Math.round(totalKm).toLocaleString('es-CO')} km</div><div class="lbl">Km totales</div></div>
+    <div class="kpi amber"><div class="val">${despachos.length>0?Math.round(totalKm/despachos.length).toLocaleString('es-CO'):0} km</div><div class="lbl">Km promedio por viaje</div></div>
+    <div class="kpi ${totalRal/despachos.length>60?'red':'amber'}"><div class="val">${fmtMin(Math.round(totalRal/despachos.length||0))}</div><div class="lbl">Ralentí prom./viaje</div></div>
+    <div class="kpi blue"><div class="val">${placas}</div><div class="lbl">Placas</div></div>
+    <div class="kpi green"><div class="val">${condSet}</div><div class="lbl">Conductores</div></div>`;
+
+  document.getElementById('tbody-viajes').innerHTML = [...despachos]
+    .sort((a,b)=>{ const pa=a.fecha.split('/'),pb=b.fecha.split('/'); return new Date(pb[2],pb[1]-1,pb[0])-new Date(pa[2],pa[1]-1,pa[0]); })
+    .map(d=>{
+      const prom = d.numTiendas>0&&d.tiempoRalentiMin>0?Math.round(d.tiempoRalentiMin/d.numTiendas):0;
+      return `<tr>
+        <td>${d.fecha}</td>
+        <td style="color:var(--blue);font-size:11px">${d.protocolo||'—'}</td>
+        <td style="font-weight:700">${d.placa}</td>
+        <td style="font-size:11px">${d.conductor||'—'}</td>
+        <td><span class="tipo-chip">${d.turno||'—'}</span></td>
+        <td style="text-align:center">${d.numTiendas||'—'}</td>
+        <td>${d.km>0?Math.round(d.km).toLocaleString('es-CO')+' km':'—'}</td>
+        <td><span class="ralenti-pill ${ralentiColor(d.tiempoRalentiMin||0)}">${fmtMin(d.tiempoRalentiMin)}</span></td>
+        <td>${prom>0?fmtMin(prom):'—'}</td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="9" class="empty">Sin viajes completados en el período</td></tr>';
+}
+
+// ── CONDUCTORES (INTEGRAL) ───────────────────────────────────────
+function renderConductores() {
+  // Datos de tanqueos
+  const porCondTanq = {};
+  datos.forEach(t => {
+    const c = t.conductor||'Sin nombre';
+    if (!porCondTanq[c]) porCondTanq[c]={ tanqueos:0,galones:0,valor:0,kms:[],placas:new Set() };
+    porCondTanq[c].tanqueos++; porCondTanq[c].galones+=t.galones; porCondTanq[c].valor+=t.valor;
+    porCondTanq[c].kms.push(t.km); if(t.placa) porCondTanq[c].placas.add(t.placa);
+  });
+
+  // Datos de viajes (analisis)
+  const porCondViaje = {};
+  (analisis?.porConductor||[]).forEach(c => { porCondViaje[c.conductor]=c; });
+
+  const todosConduct = new Set([...Object.keys(porCondTanq), ...Object.keys(porCondViaje)]);
+  const lista = [...todosConduct].map(c => ({
+    conductor: c,
+    tanq: porCondTanq[c] || null,
+    viaje: porCondViaje[c] || null
+  })).sort((a,b)=>(b.tanq?.galones||0)-(a.tanq?.galones||0));
+
   const tbody = document.getElementById('tbody-conductores');
-  if (!lista.length) { tbody.innerHTML='<tr><td colspan="7" class="empty">Sin datos</td></tr>'; return; }
+  if (!lista.length) { tbody.innerHTML='<tr><td colspan="10" class="empty">Sin datos</td></tr>'; return; }
 
   tbody.innerHTML = lista.map(c => {
-    const kms = c.kms.sort((a,b)=>a-b);
+    const t = c.tanq;
+    const v = c.viaje;
+    const kms = t ? t.kms.sort((a,b)=>a-b) : [];
     const kmRec = kms.length>1 ? kms[kms.length-1]-kms[0] : 0;
-    const rend  = kmRec>0&&c.galones>0 ? (kmRec/c.galones).toFixed(1)+' km/gal' : '—';
+    const rend = kmRec>0&&t?.galones>0 ? (kmRec/t.galones).toFixed(1)+' km/gal' : '—';
+    const promRal = v?.viajes>0 ? Math.round(v.totalRalentiMin/v.viajes) : 0;
+    const placas  = t ? [...t.placas].join(', ') : (v?.placas||[]).join(', ');
     return `<tr>
       <td style="font-weight:600">${c.conductor}</td>
-      <td style="text-align:center">${c.tanqueos}</td>
-      <td style="text-align:center">${c.galones.toFixed(1)}</td>
-      <td>${c.valor>0?'$'+Math.round(c.valor).toLocaleString('es-CO'):'—'}</td>
+      <td style="text-align:center">${t?.tanqueos||'—'}</td>
+      <td style="text-align:center">${t?.galones?.toFixed(1)||'—'}</td>
+      <td>${t?.valor>0?'$'+Math.round(t.valor).toLocaleString('es-CO'):'—'}</td>
       <td>${kmRec>0?Math.round(kmRec).toLocaleString('es-CO')+' km':'—'}</td>
-      <td style="font-weight:600;color:var(--green-t)">${rend}</td>
-      <td style="font-size:11px">${[...c.placas].join(', ')}</td>
+      <td style="font-weight:600;color:${rend!=='—'?colorRend(parseFloat(rend)):''}">${rend}</td>
+      <td style="text-align:center">${v?.viajes||'—'}</td>
+      <td>${v?.totalKm>0?Math.round(v.totalKm).toLocaleString('es-CO')+' km':'—'}</td>
+      <td><span class="ralenti-pill ${ralentiColor(promRal)}">${promRal>0?fmtMin(promRal):'—'}</span></td>
+      <td style="font-size:10px">${placas||'—'}</td>
     </tr>`;
   }).join('');
 }
 
-// ── HISTORIAL ─────────────────────────────────────────────────────
+// ── HISTORIAL ────────────────────────────────────────────────────
 function renderHistorial() {
   const tbody = document.getElementById('tbody-historial');
   if (!datos.length) { tbody.innerHTML='<tr><td colspan="11" class="empty">Sin tanqueos en el período</td></tr>'; return; }
-
-  // Calcular rendimiento entre tanqueos consecutivos por placa
   const porPlaca = {};
   [...datos].sort((a,b)=>a.km-b.km).forEach(t=>{
-    if (!porPlaca[t.placa]) porPlaca[t.placa] = [];
+    if (!porPlaca[t.placa]) porPlaca[t.placa]=[];
     porPlaca[t.placa].push(t);
   });
   const rendMap = {};
   Object.values(porPlaca).forEach(tqs=>{
     tqs.forEach((t,i)=>{
-      if (i===0) { rendMap[t.placa+'_'+t.km] = null; return; }
-      const kmRec = t.km - tqs[i-1].km;
+      if (i===0){ rendMap[t.placa+'_'+t.km]=null; return; }
+      const kmRec = t.km-tqs[i-1].km;
       rendMap[t.placa+'_'+t.km] = kmRec>0&&tqs[i-1].galones>0 ? kmRec/tqs[i-1].galones : null;
     });
   });
-
-  tbody.innerHTML = [...datos].reverse().map(t => {
+  tbody.innerHTML = [...datos].reverse().map(t=>{
     const rend = rendMap[t.placa+'_'+t.km];
-    const rendStr = rend ? rend.toFixed(1)+' km/gal' : '—';
-    const rendColor = rend ? (rend>=8?'color:var(--green-t)':rend>=5?'color:var(--amber-t)':'color:var(--red-t)') : '';
     return `<tr>
-      <td>${t.fecha}</td>
-      <td>${t.hora||'—'}</td>
+      <td>${t.fecha}</td><td>${t.hora||'—'}</td>
       <td style="font-weight:700">${t.placa}</td>
       <td>${t.conductor||'—'}</td>
       <td style="color:var(--blue);font-size:11px">${t.protocolo||'—'}</td>
       <td>${t.km.toLocaleString('es-CO')}</td>
       <td style="font-weight:600">${t.galones.toFixed(1)}</td>
-      <td style="font-weight:600;${rendColor}">${rendStr}</td>
+      <td style="font-weight:600;color:${rend?colorRend(rend):''}">${rend?rend.toFixed(1)+' km/gal':'—'}</td>
       <td style="font-size:11px">${t.estacion||'—'}</td>
       <td>${t.valor>0?'$'+Math.round(t.valor).toLocaleString('es-CO'):'—'}</td>
-      <td>
-        ${t.fotoRecibo?`<a class="foto-link" href="${t.fotoRecibo}" target="_blank">📄 Recibo</a>`:''}
-        ${t.fotoOdometro?`<a class="foto-link" href="${t.fotoOdometro}" target="_blank" style="margin-left:4px">🔢 Odóm.</a>`:''}
-        ${!t.fotoRecibo&&!t.fotoOdometro?'—':''}
-      </td>
+      <td>${t.fotoRecibo?`<a class="foto-link" href="${t.fotoRecibo}" target="_blank">📄 Recibo</a>`:''} ${t.fotoOdometro?`<a class="foto-link" href="${t.fotoOdometro}" target="_blank">🔢 Odóm.</a>`:''} ${!t.fotoRecibo&&!t.fotoOdometro?'—':''}</td>
     </tr>`;
   }).join('');
 }
 
-// ── EXPORT CSV ────────────────────────────────────────────────────
+// ── EXPORTS ──────────────────────────────────────────────────────
 function exportarCSV() {
   if (!datos.length) { toast('Sin datos'); return; }
-  const headers = ['Fecha','Hora','Placa','Conductor','Protocolo','Km Odómetro','Galones','Estación','Valor','Observaciones'];
-  const rows    = datos.map(t=>[t.fecha,t.hora,t.placa,t.conductor,t.protocolo,t.km,t.galones,t.estacion,t.valor,t.observaciones]);
-  const csv     = [headers,...rows].map(r=>r.map(v=>`"${v||''}"`).join(',')).join('\n');
-  const blob    = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
-  const a       = document.createElement('a');
-  a.href        = URL.createObjectURL(blob);
-  a.download    = 'combustible.csv';
-  a.click(); toast('CSV exportado');
+  const h=['Fecha','Hora','Placa','Conductor','Protocolo','Km Odómetro','Galones','Estación','Valor','Obs'];
+  const r=datos.map(t=>[t.fecha,t.hora,t.placa,t.conductor,t.protocolo,t.km,t.galones,t.estacion,t.valor,t.observaciones]);
+  descargarCSV([h,...r],'combustible.csv'); toast('CSV exportado');
+}
+function exportarRalentiCSV() {
+  const d=(analisis?.despachos||[]);
+  if (!d.length){toast('Sin datos');return;}
+  const h=['Fecha','Protocolo','Placa','Conductor','Turno','Tiendas','Ralentí total (min)','Km ruta'];
+  const r=d.map(v=>[v.fecha,v.protocolo,v.placa,v.conductor,v.turno,v.numTiendas,v.tiempoRalentiMin,v.km]);
+  descargarCSV([h,...r],'ralenti.csv'); toast('CSV ralentí exportado');
+}
+function exportarViajesCSV() {
+  const d=(analisis?.despachos||[]);
+  if (!d.length){toast('Sin datos');return;}
+  const h=['Fecha','Protocolo','Placa','Conductor','Turno','Tiendas','Km','Ralentí total (min)','Prom. tienda (min)'];
+  const r=d.map(v=>[v.fecha,v.protocolo,v.placa,v.conductor,v.turno,v.numTiendas,v.km,v.tiempoRalentiMin,v.numTiendas>0?Math.round(v.tiempoRalentiMin/v.numTiendas):0]);
+  descargarCSV([h,...r],'viajes.csv'); toast('CSV viajes exportado');
+}
+function descargarCSV(filas, nombre) {
+  const csv=filas.map(r=>r.map(v=>`"${v||''}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download=nombre; a.click();
 }
 
 function showTab(name,btn){
@@ -391,18 +761,45 @@ function showTab(name,btn){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('sel'));
   btn.classList.add('sel');
 }
-
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 
+// ── DEMO DATA ────────────────────────────────────────────────────
 function demoTanqueos(){
-  const d=(n,f)=>{const x=new Date();x.setDate(x.getDate()-n);return `${String(x.getDate()).padStart(2,'0')}/${String(x.getMonth()+1).padStart(2,'0')}/${x.getFullYear()}`;};
+  const d=n=>{const x=new Date();x.setDate(x.getDate()-n);return `${String(x.getDate()).padStart(2,'0')}/${String(x.getMonth()+1).padStart(2,'0')}/${x.getFullYear()}`;};
   return[
     {fecha:d(0),hora:'07:30',placa:'POZ720',conductor:'Carlos Muñoz',protocolo:'P-2041',km:85420,galones:45.5,estacion:'Terpel Norte',valor:280000,fotoRecibo:'',fotoOdometro:''},
     {fecha:d(1),hora:'06:15',placa:'POZ721',conductor:'Pedro Ramírez',protocolo:'P-2039',km:62310,galones:38.0,estacion:'Biomax Sur',valor:235000,fotoRecibo:'',fotoOdometro:''},
     {fecha:d(2),hora:'08:00',placa:'POZ720',conductor:'Carlos Muñoz',protocolo:'P-2035',km:85010,galones:42.0,estacion:'Terpel Norte',valor:260000,fotoRecibo:'',fotoOdometro:''},
     {fecha:d(3),hora:'07:45',placa:'LPY336',conductor:'Jorge Torres',protocolo:'P-2030',km:41200,galones:50.0,estacion:'Primax Calle 80',valor:310000,fotoRecibo:'',fotoOdometro:''},
     {fecha:d(4),hora:'06:30',placa:'POZ721',conductor:'Pedro Ramírez',protocolo:'P-2028',km:61900,galones:40.5,estacion:'Biomax Sur',valor:250000,fotoRecibo:'',fotoOdometro:''},
+    {fecha:d(5),hora:'07:10',placa:'LPY336',conductor:'Jorge Torres',protocolo:'P-2025',km:40700,galones:48.0,estacion:'Primax Calle 80',valor:298000,fotoRecibo:'',fotoOdometro:''},
   ];
+}
+function demoAnalisis(){
+  const d=n=>{const x=new Date();x.setDate(x.getDate()-n);return `${String(x.getDate()).padStart(2,'0')}/${String(x.getMonth()+1).padStart(2,'0')}/${x.getFullYear()}`;};
+  const despachos=[
+    {fecha:d(0),placa:'POZ720',conductor:'Carlos Muñoz',turno:'Diurno urbano',protocolo:'P-2041',km:120,numTiendas:6,tiempoRalentiMin:95,cedi:'CEDI Norte'},
+    {fecha:d(1),placa:'POZ721',conductor:'Pedro Ramírez',turno:'Nocturno',protocolo:'P-2039',km:280,numTiendas:3,tiempoRalentiMin:42,cedi:'CEDI Sur'},
+    {fecha:d(2),placa:'POZ720',conductor:'Carlos Muñoz',turno:'Diurno urbano',protocolo:'P-2035',km:105,numTiendas:7,tiempoRalentiMin:110,cedi:'CEDI Norte'},
+    {fecha:d(3),placa:'LPY336',conductor:'Jorge Torres',turno:'Nocturno',protocolo:'P-2030',km:310,numTiendas:2,tiempoRalentiMin:30,cedi:'CEDI Bogotá'},
+    {fecha:d(4),placa:'POZ721',conductor:'Pedro Ramírez',turno:'Diurno urbano',protocolo:'P-2028',km:95,numTiendas:5,tiempoRalentiMin:80,cedi:'CEDI Sur'},
+    {fecha:d(5),placa:'LPY336',conductor:'Jorge Torres',turno:'Nocturno',protocolo:'P-2025',km:295,numTiendas:2,tiempoRalentiMin:25,cedi:'CEDI Bogotá'},
+  ];
+  const ralentiPorPlaca=[
+    {placa:'POZ720',viajes:2,totalRalentiMin:205,totalKm:225,tiendas:13,conductores:['Carlos Muñoz']},
+    {placa:'POZ721',viajes:2,totalRalentiMin:122,totalKm:375,tiendas:8,conductores:['Pedro Ramírez']},
+    {placa:'LPY336',viajes:2,totalRalentiMin:55,totalKm:605,tiendas:4,conductores:['Jorge Torres']},
+  ];
+  const porTipoRuta=[
+    {tipo:'Diurno urbano',viajes:3,totalKm:320,totalRalentiMin:285,tiendas:18,placas:['POZ720','POZ721']},
+    {tipo:'Nocturno',viajes:3,totalKm:885,totalRalentiMin:97,tiendas:7,placas:['POZ721','LPY336']},
+  ];
+  const porConductor=[
+    {conductor:'Carlos Muñoz',viajes:2,totalKm:225,totalRalentiMin:205,tiendas:13,placas:['POZ720']},
+    {conductor:'Pedro Ramírez',viajes:2,totalKm:375,totalRalentiMin:122,tiendas:8,placas:['POZ721']},
+    {conductor:'Jorge Torres',viajes:2,totalKm:605,totalRalentiMin:55,tiendas:4,placas:['LPY336']},
+  ];
+  return {ok:true,totalDespachos:6,despachos,ralentiPorPlaca,porTipoRuta,porConductor};
 }
 </script>
 </body>

@@ -91,7 +91,7 @@ body{background:var(--bg);color:#1a1a18;min-height:100vh}
 </head>
 <body>
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbxTx_FuM2-1AcyB3fB2uHPBP1E1hc109v4R_heX3M_DTO-LsQdGS1EBwlt_32ijyXAg/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbz0WRCoH06LZoN8KlOpTCQsTzhHze6IxbbMKZICvh7cjcEMuskA3Db-dKIFy8UxkySK/exec';
 const BASE_URL = 'https://davidmilques.github.io/TRASLADARR3/conductor.html';
 const STATS_URL = 'https://davidmilques.github.io/TRASLADARR3/estadisticas.html';
 const INFORMES_URL = 'https://davidmilques.github.io/TRASLADARR3/informes.html';
@@ -173,9 +173,9 @@ let filtroFecha='', filtroEstado='', filtroConductor='', filtroPlaca='', filtroC
       <span id="sidebar-count">Despachos</span>
       <span id="nov-badge" style="display:none" class="badge b-novedad pulse"></span>
     </div>
-    <div class="sidebar-body" id="sidebar-body"><div class="loading"><div class="spinner"></div>Cargando...</div></div>
+    <div class="sidebar-body" id="sidebar-body"><div class="loading"><div class="spinner"></div>Conectando con el servidor...<br><span style="font-size:10px;opacity:.6">Puede tardar hasta 55 segundos</span></div></div>
   </div>
-  <div class="main" id="main-content"><div class="loading"><div class="spinner"></div>Cargando despachos...</div></div>
+  <div class="main" id="main-content"><div class="loading"><div class="spinner"></div>Cargando despachos...<br><span style="font-size:11px;color:var(--gray);margin-top:4px;display:block">Apps Script puede tardar unos segundos la primera vez</span></div></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -199,7 +199,7 @@ async function cargarTodo(){
   try{
     // Timeout de 20 segundos — si Apps Script tarda más, mantiene datos anteriores
     const ctrl = new AbortController();
-    const tid  = setTimeout(()=>ctrl.abort(), 20000);
+    const tid  = setTimeout(()=>ctrl.abort(), 55000);
     const r = await fetch(`${API_URL}?action=getDespachos`, {signal:ctrl.signal});
     clearTimeout(tid);
     const d = await r.json();
@@ -209,14 +209,12 @@ async function cargarTodo(){
       new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
   } catch(e) {
     if(e.name==='AbortError'){
-      // Timeout — mantener datos anteriores, solo avisar
-      toast('⚠️ Servidor lento — mostrando última actualización');
+      toast('⏳ Servidor tardó más de 55s — intenta actualizar de nuevo');
     } else if(!todos || todos.length===0){
-      // Solo usar demo si no hay datos previos
-      todos = demoData();
-      toast('Sin conexión — modo demo');
+      document.getElementById('main-content').innerHTML='<div class="empty">⚠️ Sin conexión con el servidor.<br>Verifica tu internet y recarga.</div>';
+      document.getElementById('sidebar-body').innerHTML='<div class="empty">Sin datos</div>';
+      toast('⚠️ Error de conexión — revisa el servidor');
     } else {
-      // Hay datos anteriores — mantenerlos y avisar
       toast('⚠️ Error al actualizar — mostrando datos anteriores');
     }
   }

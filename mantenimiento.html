@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#185FA5">
+<title>FleteTrack — Mantenimiento</title>
+<style>
+:root{--blue:#185FA5;--blue-l:#E6F1FB;--blue-t:#0C447C;--green:#1D9E75;--green-l:#E1F5EE;--green-t:#085041;--amber:#BA7517;--amber-l:#FAEEDA;--amber-t:#633806;--red:#E24B4A;--red-l:#FCEBEB;--red-t:#791F1F;--gray:#5F5E5A;--gray-l:#F1EFE8;--gray-t:#2C2C2A;--border:#E0DDD6;--bg:#F8F7F4;--r:10px;--rs:6px}
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+body{background:var(--bg);color:#1a1a18}
+.topbar{background:var(--blue);color:white;padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:20}
+.topbar h1{font-size:16px;font-weight:600}
+.topbar-nav{display:flex;gap:4px}
+.nav-link{background:rgba(255,255,255,.15);border:none;color:white;padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;text-decoration:none;display:inline-block}
+.nav-link:hover{background:rgba(255,255,255,.25)}
+.tabs{display:flex;border-bottom:1px solid var(--border);background:white;padding:0 20px;overflow-x:auto;position:sticky;top:52px;z-index:10}
+.tab-btn{padding:10px 14px;font-size:12px;font-weight:500;color:var(--gray);cursor:pointer;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;flex-shrink:0}
+.tab-btn.sel{color:var(--blue);border-bottom-color:var(--blue)}
+.content{padding:16px 20px;max-width:1100px;margin:0 auto}
+.tab-pane{display:none}.tab-pane.active{display:block}
+.card{background:white;border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.card-title{font-size:13px;font-weight:600;color:var(--gray-t);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+/* ALERTAS */
+.alert-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-bottom:16px}
+.alert-card{background:white;border:1px solid var(--border);border-radius:var(--r);padding:14px;position:relative;overflow:hidden}
+.alert-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px}
+.alert-card.ok::before{background:var(--green)}
+.alert-card.warn::before{background:var(--amber)}
+.alert-card.vence::before{background:var(--red)}
+.alert-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.alert-placa{font-size:14px;font-weight:700;color:var(--gray-t)}
+.alert-tipo{font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;white-space:nowrap}
+.alert-tipo.ok{background:var(--green-l);color:var(--green-t)}
+.alert-tipo.warn{background:var(--amber-l);color:var(--amber-t)}
+.alert-tipo.vence{background:var(--red-l);color:var(--red-t)}
+.alert-mant{font-size:12px;font-weight:500;color:var(--gray-t);margin-bottom:3px}
+.alert-det{font-size:11px;color:var(--gray)}
+.alert-prog{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:8px}
+.alert-fill{height:100%;border-radius:2px}
+/* TABLAS */
+.tbl-wrap{overflow-x:auto;border-radius:var(--r);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{font-size:10px;font-weight:600;color:var(--gray);text-align:left;padding:7px 10px;border-bottom:2px solid var(--border);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;background:white}
+td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg)}
+.badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500}
+.b-ok{background:var(--green-l);color:var(--green-t)}
+.b-warn{background:var(--amber-l);color:var(--amber-t)}
+.b-vence{background:var(--red-l);color:var(--red-t)}
+.b-na{background:var(--gray-l);color:var(--gray)}
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-bg.open{display:flex}
+.modal{background:white;border-radius:var(--r);padding:20px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:15px;font-weight:600;color:var(--gray-t);margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--gray);line-height:1}
+.field{margin-bottom:10px}
+.field label{display:block;font-size:11px;font-weight:500;color:var(--gray);margin-bottom:3px}
+.field input,.field select,.field textarea{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:var(--rs);font-size:13px;background:white;color:#1a1a18;outline:none}
+.field input:focus,.field select:focus{border-color:var(--blue)}
+.field textarea{height:60px;resize:none}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.field-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.btn{padding:9px 18px;border:none;border-radius:var(--rs);font-size:13px;font-weight:500;cursor:pointer}
+.btn-primary{background:var(--blue);color:white}
+.btn-primary:hover{background:var(--blue-t)}
+.btn-success{background:var(--green);color:white}
+.btn-outline{background:white;border:1px solid var(--border);color:var(--gray-t)}
+.btn-outline:hover{background:var(--bg)}
+.btn-danger{background:var(--red-l);color:var(--red-t);border:1px solid var(--red)}
+.btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+/* FICHA VEHÍCULO */
+.ficha-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.ficha-item{display:flex;flex-direction:column;gap:2px}
+.ficha-lbl{font-size:10px;color:var(--gray);font-weight:600;text-transform:uppercase}
+.ficha-val{font-size:13px;font-weight:500;color:var(--gray-t)}
+.empty{text-align:center;padding:24px;color:var(--gray);font-size:12px}
+.loading{text-align:center;padding:30px;color:var(--gray)}
+.spinner{width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a1a18;color:white;padding:9px 16px;border-radius:20px;font-size:12px;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+.add-btn{background:var(--blue);color:white;border:none;border-radius:var(--rs);padding:7px 14px;font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:5px}
+.add-btn:hover{background:var(--blue-t)}
+/* KM badge */
+.km-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:10px;font-weight:500}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <h1>🔧 Mantenimiento de flota</h1>
+  <div class="topbar-nav">
+    <a class="nav-link" id="link-inicio" href="login.html">Inicio</a>
+    <a class="nav-link" id="link-dash" href="dashboard_v2.html">Dashboard</a>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn sel" onclick="showTab('alertas',this)">Alertas</button>
+  <button class="tab-btn" onclick="showTab('historial',this)">Historial</button>
+  <button class="tab-btn" onclick="showTab('vehiculos',this)">Vehículos</button>
+  <button class="tab-btn" onclick="showTab('registrar',this)">Registrar mantenimiento</button>
+</div>
+
+<div class="content">
+
+  <!-- ══ ALERTAS ══════════════════════════════════════════════════ -->
+  <div id="tab-alertas" class="tab-pane active">
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">
+        Resumen de alertas
+        <button class="add-btn" onclick="showTab('registrar',document.querySelectorAll('.tab-btn')[3])">+ Registrar mantenimiento</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px" id="alertas-resumen"></div>
+    </div>
+    <div id="alertas-grid" class="alert-grid"></div>
+  </div>
+
+  <!-- ══ HISTORIAL ════════════════════════════════════════════════ -->
+  <div id="tab-historial" class="tab-pane">
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">
+        Historial de mantenimientos
+        <div style="display:flex;gap:8px;align-items:center">
+          <select id="filtro-placa-hist" onchange="renderHistorial()" style="padding:5px 8px;border:1px solid var(--border);border-radius:var(--rs);font-size:12px">
+            <option value="">Todas las placas</option>
+          </select>
+          <select id="filtro-tipo-hist" onchange="renderHistorial()" style="padding:5px 8px;border:1px solid var(--border);border-radius:var(--rs);font-size:12px">
+            <option value="">Todos los tipos</option>
+          </select>
+        </div>
+      </div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Fecha</th><th>Placa</th><th>Tipo</th><th>Descripción</th><th>Km</th><th>Costo</th><th>Taller</th><th>Próx. km</th><th>Próx. fecha</th><th>Estado</th></tr></thead>
+        <tbody id="hist-tbody"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- ══ VEHÍCULOS ════════════════════════════════════════════════ -->
+  <div id="tab-vehiculos" class="tab-pane">
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">
+        Fichas de vehículos
+        <button class="add-btn" onclick="abrirModalVehiculo()">+ Agregar vehículo</button>
+      </div>
+      <div id="vehiculos-lista"></div>
+    </div>
+  </div>
+
+  <!-- ══ REGISTRAR ════════════════════════════════════════════════ -->
+  <div id="tab-registrar" class="tab-pane">
+    <div class="card">
+      <div class="card-title">Registrar nuevo mantenimiento</div>
+      <div class="field-row">
+        <div class="field"><label>Placa</label>
+          <select id="reg-placa">
+            <option value="">Selecciona placa...</option>
+          </select>
+        </div>
+        <div class="field"><label>Tipo de mantenimiento</label>
+          <select id="reg-tipo">
+            <option value="">Selecciona tipo...</option>
+            <option>Aceite/lubricantes</option>
+            <option>Frenos</option>
+            <option>Llantas</option>
+            <option>Filtros</option>
+            <option>Revisión general</option>
+            <option>SOAT</option>
+            <option>Tecnomecánica</option>
+            <option>Licencia de tránsito</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Descripción del trabajo realizado</label>
+        <textarea id="reg-desc" placeholder="Ej: Cambio de aceite 10W40 + filtro de aceite + filtro de aire..."></textarea>
+      </div>
+      <div class="field-3">
+        <div class="field"><label>Fecha de realización</label><input type="date" id="reg-fecha"></div>
+        <div class="field"><label>Km actuales</label><input type="number" id="reg-km" placeholder="Ej: 85000"></div>
+        <div class="field"><label>Costo ($)</label><input type="number" id="reg-costo" placeholder="Ej: 250000"></div>
+      </div>
+      <div class="field"><label>Taller / Proveedor</label>
+        <input type="text" id="reg-taller" placeholder="Nombre del taller">
+      </div>
+      <div style="background:var(--bg);border-radius:var(--rs);padding:12px;margin:10px 0">
+        <div style="font-size:11px;font-weight:600;color:var(--gray);margin-bottom:8px">PRÓXIMO MANTENIMIENTO (opcional)</div>
+        <div class="field-row">
+          <div class="field"><label>Próximos km</label><input type="number" id="reg-prox-km" placeholder="Ej: 90000"></div>
+          <div class="field"><label>Próxima fecha</label><input type="date" id="reg-prox-fecha"></div>
+        </div>
+        <div style="font-size:10px;color:var(--gray);margin-top:4px">Se alertará cuando el vehículo llegue a ese km o esa fecha (lo que ocurra primero)</div>
+      </div>
+      <div class="field"><label>Observaciones</label>
+        <textarea id="reg-obs" placeholder="Novedades adicionales..."></textarea>
+      </div>
+      <div class="btn-row" style="justify-content:flex-start">
+        <button class="btn btn-success" onclick="guardarMantenimiento()">Guardar mantenimiento</button>
+        <button class="btn btn-outline" onclick="limpiarFormRegistro()">Limpiar</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL VEHÍCULO -->
+<div class="modal-bg" id="modal-vehiculo">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="modal-veh-titulo">Agregar vehículo</span>
+      <button class="modal-close" onclick="cerrarModal('modal-vehiculo')">✕</button>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Placa</label><input type="text" id="veh-placa" placeholder="Ej: ABC123" style="text-transform:uppercase"></div>
+      <div class="field"><label>Tipo</label>
+        <select id="veh-tipo"><option>Camión</option><option>Furgón</option><option>Camioneta</option><option>Tractomula</option><option>Otro</option></select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Marca</label><input type="text" id="veh-marca" placeholder="Ej: Kenworth"></div>
+      <div class="field"><label>Modelo / Año</label><input type="text" id="veh-modelo" placeholder="Ej: T800 / 2019"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Color</label><input type="text" id="veh-color" placeholder="Ej: Blanco"></div>
+      <div class="field"><label>Km actuales</label><input type="number" id="veh-km" placeholder="Ej: 85000"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Propietario</label><input type="text" id="veh-propietario" placeholder="Nombre del propietario"></div>
+      <div class="field"><label>Capacidad (ton)</label><input type="number" id="veh-capacidad" placeholder="Ej: 10"></div>
+    </div>
+    <div class="field"><label>Observaciones</label>
+      <textarea id="veh-obs" placeholder="Notas sobre el vehículo..."></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="cerrarModal('modal-vehiculo')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarVehiculo()">Guardar vehículo</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API_URL   = 'https://script.google.com/macros/s/AKfycbz0WRCoH06LZoN8KlOpTCQsTzhHze6IxbbMKZICvh7cjcEMuskA3Db-dKIFy8UxkySK/exec';
+const DASH_URL  = 'https://davidmilques.github.io/TRASLADARR3/dashboard.html';
+const LOGIN_URL = 'https://davidmilques.github.io/TRASLADARR3/login.html';
+
+// KM de alerta por tipo de mantenimiento (configurable)
+const INTERVALOS_KM = {
+  'Aceite/lubricantes': 5000, 'Frenos': 20000, 'Llantas': 40000,
+  'Filtros': 10000, 'Revisión general': 15000,
+  'SOAT': null, 'Tecnomecánica': null, 'Licencia de tránsito': null
+};
+
+let mantenimientos = [];
+let vehiculos      = [];
+let editVehIdx     = -1;
+
+document.getElementById('link-dash').href   = DASH_URL;
+document.getElementById('link-inicio').href = LOGIN_URL;
+
+window.addEventListener('DOMContentLoaded', () => {
+  const hoy = new Date();
+  document.getElementById('reg-fecha').value = fi(hoy);
+  cargar();
+});
+
+async function cargar() {
+  try {
+    const r = await fetch(`${API_URL}?action=getMantenimiento`);
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+    mantenimientos = d.mantenimientos || [];
+    vehiculos      = d.vehiculos      || [];
+  } catch(e) {
+    mantenimientos = demoMantenimientos();
+    vehiculos      = demoVehiculos();
+    toast('Modo demo — configura API_URL');
+  }
+  poblarSelectPlacas();
+  renderAlertas();
+  renderHistorial();
+  renderVehiculos();
+}
+
+// ── POBLAR SELECTS ─────────────────────────────────────────────
+function poblarSelectPlacas() {
+  const placas = [...new Set([
+    ...vehiculos.map(v => v.placa),
+    ...mantenimientos.map(m => m.placa)
+  ])].filter(Boolean).sort();
+
+  ['filtro-placa-hist','reg-placa'].forEach(id => {
+    const sel = document.getElementById(id);
+    const val = sel.value;
+    const base = id === 'reg-placa' ? '<option value="">Selecciona placa...</option>' : '<option value="">Todas las placas</option>';
+    sel.innerHTML = base + placas.map(p => `<option value="${p}"${p===val?' selected':''}>${p}</option>`).join('');
+  });
+
+  const tipos = [...new Set(mantenimientos.map(m => m.tipo))].filter(Boolean).sort();
+  const selT  = document.getElementById('filtro-tipo-hist');
+  const valT  = selT.value;
+  selT.innerHTML = '<option value="">Todos los tipos</option>' + tipos.map(t=>`<option${t===valT?' selected':''}>${t}</option>`).join('');
+}
+
+// ── ALERTAS ────────────────────────────────────────────────────
+function renderAlertas() {
+  const alertas = calcularAlertas();
+  const vence   = alertas.filter(a => a.nivel === 'vence').length;
+  const warn    = alertas.filter(a => a.nivel === 'warn').length;
+  const ok      = alertas.filter(a => a.nivel === 'ok').length;
+
+  document.getElementById('alertas-resumen').innerHTML = `
+    <div style="background:var(--red-l);border:1px solid var(--red);border-radius:var(--rs);padding:12px;text-align:center">
+      <div style="font-size:22px;font-weight:700;color:var(--red-t)">${vence}</div>
+      <div style="font-size:11px;color:var(--red-t);font-weight:500">Vencidos / próximos</div>
+    </div>
+    <div style="background:var(--amber-l);border:1px solid var(--amber);border-radius:var(--rs);padding:12px;text-align:center">
+      <div style="font-size:22px;font-weight:700;color:var(--amber-t)">${warn}</div>
+      <div style="font-size:11px;color:var(--amber-t);font-weight:500">Por vencer (30 días)</div>
+    </div>
+    <div style="background:var(--green-l);border:1px solid var(--green);border-radius:var(--rs);padding:12px;text-align:center">
+      <div style="font-size:22px;font-weight:700;color:var(--green-t)">${ok}</div>
+      <div style="font-size:11px;color:var(--green-t);font-weight:500">Al día</div>
+    </div>`;
+
+  if (!alertas.length) {
+    document.getElementById('alertas-grid').innerHTML = '<div class="empty">Sin mantenimientos registrados aún. Registra el primero en la pestaña "Registrar mantenimiento".</div>';
+    return;
+  }
+  document.getElementById('alertas-grid').innerHTML = alertas.map(a => `
+    <div class="alert-card ${a.nivel}">
+      <div class="alert-header">
+        <div class="alert-placa">${a.placa}</div>
+        <span class="alert-tipo ${a.nivel}">${a.nivelLabel}</span>
+      </div>
+      <div class="alert-mant">${a.tipo}</div>
+      <div class="alert-det">Último: ${a.ultimaFecha||'—'} · ${a.ultimoKm?a.ultimoKm.toLocaleString('es-CO')+' km':'—'}</div>
+      ${a.proxFecha||a.proxKm ? `<div class="alert-det" style="margin-top:2px">
+        ${a.proxFecha?'Próx. fecha: <strong>'+a.proxFecha+'</strong>':''}
+        ${a.proxFecha&&a.proxKm?' · ':''}
+        ${a.proxKm?'Próx. km: <strong>'+a.proxKm.toLocaleString('es-CO')+'</strong>':''}
+      </div>` : ''}
+      ${a.pct !== null ? `<div class="alert-prog"><div class="alert-fill" style="width:${a.pct}%;background:${a.nivel==='ok'?'var(--green)':a.nivel==='warn'?'var(--amber)':'var(--red)'}"></div></div>` : ''}
+    </div>`).join('');
+}
+
+function calcularAlertas() {
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  // Agrupar último mantenimiento por placa+tipo
+  const grupos = {};
+  mantenimientos.forEach(m => {
+    const key = `${m.placa}||${m.tipo}`;
+    if (!grupos[key] || new Date(m.fechaISO||parseFechaDD(m.fecha)) > new Date(grupos[key].fechaISO||parseFechaDD(grupos[key].fecha)))
+      grupos[key] = m;
+  });
+  return Object.values(grupos).map(m => {
+    const proxFechaD = m.proxFecha ? new Date(m.proxFecha) : null;
+    const proxKm     = m.proxKm    ? parseInt(m.proxKm)    : null;
+    const kmActual   = m.kmActual  ? parseInt(m.kmActual)  : null;
+    let nivel = 'ok', nivelLabel = 'Al día', pct = null;
+    const diasProxFecha = proxFechaD ? Math.round((proxFechaD - hoy) / 86400000) : null;
+    if (diasProxFecha !== null) {
+      if (diasProxFecha <= 0)       { nivel = 'vence'; nivelLabel = 'Vencido'; }
+      else if (diasProxFecha <= 30) { nivel = 'warn';  nivelLabel = `${diasProxFecha}d restantes`; }
+      if (proxFechaD && m.ultimaFechaD) {
+        const total = proxFechaD - new Date(parseFechaDD(m.fecha));
+        const usado = hoy - new Date(parseFechaDD(m.fecha));
+        pct = Math.min(100, Math.round(usado/total*100));
+      }
+    }
+    return { placa:m.placa, tipo:m.tipo, nivel, nivelLabel,
+      ultimaFecha:m.fecha, ultimoKm:kmActual,
+      proxFecha:m.proxFecha?fmtFechaDMY(m.proxFecha):'—',
+      proxKm, pct };
+  }).sort((a,b) => {
+    const o = {vence:0,warn:1,ok:2};
+    return (o[a.nivel]||2)-(o[b.nivel]||2);
+  });
+}
+
+// ── HISTORIAL ──────────────────────────────────────────────────
+function renderHistorial() {
+  const placaF = document.getElementById('filtro-placa-hist').value;
+  const tipoF  = document.getElementById('filtro-tipo-hist').value;
+  let rows = mantenimientos
+    .filter(m => (!placaF || m.placa === placaF) && (!tipoF || m.tipo === tipoF))
+    .sort((a,b) => new Date(b.fechaISO||parseFechaDD(b.fecha)) - new Date(a.fechaISO||parseFechaDD(a.fecha)));
+  const tbody = document.getElementById('hist-tbody');
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="10" class="empty">Sin registros</td></tr>'; return; }
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  tbody.innerHTML = rows.map(m => {
+    const proxD = m.proxFecha ? new Date(m.proxFecha) : null;
+    const dias  = proxD ? Math.round((proxD-hoy)/86400000) : null;
+    const bCls  = dias===null?'b-na':dias<=0?'b-vence':dias<=30?'b-warn':'b-ok';
+    const bTxt  = dias===null?'—':dias<=0?'Vencido':dias<=30?`${dias}d`:fmtFechaDMY(m.proxFecha);
+    return `<tr>
+      <td>${m.fecha||'—'}</td>
+      <td style="font-weight:700">${m.placa||'—'}</td>
+      <td>${m.tipo||'—'}</td>
+      <td style="font-size:11px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${m.descripcion||''}">${m.descripcion||'—'}</td>
+      <td>${m.kmActual?parseInt(m.kmActual).toLocaleString('es-CO')+' km':'—'}</td>
+      <td>${m.costo?'$'+parseInt(m.costo).toLocaleString('es-CO'):'—'}</td>
+      <td>${m.taller||'—'}</td>
+      <td>${m.proxKm?parseInt(m.proxKm).toLocaleString('es-CO')+' km':'—'}</td>
+      <td>${m.proxFecha?fmtFechaDMY(m.proxFecha):'—'}</td>
+      <td><span class="badge ${bCls}">${bTxt}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── VEHÍCULOS ──────────────────────────────────────────────────
+function renderVehiculos() {
+  const el = document.getElementById('vehiculos-lista');
+  if (!vehiculos.length) { el.innerHTML = '<div class="empty">Sin vehículos registrados. Agrega el primero con el botón de arriba.</div>'; return; }
+  el.innerHTML = vehiculos.map((v,i) => {
+    const histV = mantenimientos.filter(m => m.placa === v.placa);
+    const ultimo = histV.sort((a,b)=>new Date(b.fechaISO||parseFechaDD(b.fecha))-new Date(a.fechaISO||parseFechaDD(a.fecha)))[0];
+    return `<div class="card" style="margin-bottom:10px">
+      <div class="card-title">
+        <span style="font-size:15px;font-weight:700">${v.placa} <span style="font-size:11px;font-weight:400;color:var(--gray)">${v.tipo||''} · ${v.marca||''} ${v.modelo||''}</span></span>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-outline" style="font-size:11px;padding:4px 10px" onclick="editarVehiculo(${i})">Editar</button>
+        </div>
+      </div>
+      <div class="ficha-grid">
+        <div class="ficha-item"><div class="ficha-lbl">Color</div><div class="ficha-val">${v.color||'—'}</div></div>
+        <div class="ficha-item"><div class="ficha-lbl">Km registrados</div><div class="ficha-val">${v.km?parseInt(v.km).toLocaleString('es-CO')+' km':'—'}</div></div>
+        <div class="ficha-item"><div class="ficha-lbl">Capacidad</div><div class="ficha-val">${v.capacidad?v.capacidad+' ton':'—'}</div></div>
+        <div class="ficha-item"><div class="ficha-lbl">Propietario</div><div class="ficha-val">${v.propietario||'—'}</div></div>
+        <div class="ficha-item"><div class="ficha-lbl">Mantenimientos</div><div class="ficha-val">${histV.length}</div></div>
+        <div class="ficha-item"><div class="ficha-lbl">Último mant.</div><div class="ficha-val">${ultimo?ultimo.fecha+' · '+ultimo.tipo:'Sin registros'}</div></div>
+      </div>
+      ${v.observaciones?`<div style="margin-top:8px;font-size:11px;color:var(--gray);padding:7px 10px;background:var(--bg);border-radius:var(--rs)">${v.observaciones}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ── GUARDAR MANTENIMIENTO ──────────────────────────────────────
+async function guardarMantenimiento() {
+  const placa = document.getElementById('reg-placa').value;
+  const tipo  = document.getElementById('reg-tipo').value;
+  const fecha = document.getElementById('reg-fecha').value;
+  if (!placa || !tipo || !fecha) { toast('Completa placa, tipo y fecha'); return; }
+  const data = {
+    action: 'guardarMantenimiento',
+    placa, tipo, fecha: fmtFechaDMY(fecha), fechaISO: fecha,
+    descripcion: document.getElementById('reg-desc').value,
+    kmActual:    document.getElementById('reg-km').value,
+    costo:       document.getElementById('reg-costo').value,
+    taller:      document.getElementById('reg-taller').value,
+    proxKm:      document.getElementById('reg-prox-km').value,
+    proxFecha:   document.getElementById('reg-prox-fecha').value,
+    observaciones: document.getElementById('reg-obs').value
+  };
+  mantenimientos.push(data); // optimistic
+  poblarSelectPlacas(); renderAlertas(); renderHistorial();
+  try {
+    await apiPost(data);
+    toast('Mantenimiento guardado');
+  } catch { toast('Error al guardar — intenta de nuevo'); }
+  limpiarFormRegistro();
+}
+
+function limpiarFormRegistro() {
+  ['reg-placa','reg-tipo','reg-desc','reg-km','reg-costo','reg-taller','reg-prox-km','reg-obs'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  document.getElementById('reg-fecha').value = fi(new Date());
+  document.getElementById('reg-prox-fecha').value = '';
+}
+
+// ── MODAL VEHÍCULO ─────────────────────────────────────────────
+function abrirModalVehiculo() {
+  editVehIdx = -1;
+  document.getElementById('modal-veh-titulo').textContent = 'Agregar vehículo';
+  ['veh-placa','veh-marca','veh-modelo','veh-color','veh-propietario','veh-obs'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('veh-km').value='';
+  document.getElementById('veh-capacidad').value='';
+  document.getElementById('modal-vehiculo').classList.add('open');
+}
+
+function editarVehiculo(i) {
+  editVehIdx = i;
+  const v = vehiculos[i];
+  document.getElementById('modal-veh-titulo').textContent = 'Editar vehículo';
+  document.getElementById('veh-placa').value       = v.placa||'';
+  document.getElementById('veh-tipo').value        = v.tipo||'Camión';
+  document.getElementById('veh-marca').value       = v.marca||'';
+  document.getElementById('veh-modelo').value      = v.modelo||'';
+  document.getElementById('veh-color').value       = v.color||'';
+  document.getElementById('veh-km').value          = v.km||'';
+  document.getElementById('veh-capacidad').value   = v.capacidad||'';
+  document.getElementById('veh-propietario').value = v.propietario||'';
+  document.getElementById('veh-obs').value         = v.observaciones||'';
+  document.getElementById('modal-vehiculo').classList.add('open');
+}
+
+async function guardarVehiculo() {
+  const placa = document.getElementById('veh-placa').value.trim().toUpperCase();
+  if (!placa) { toast('Ingresa la placa'); return; }
+  const v = {
+    action:'guardarVehiculo', placa,
+    tipo:        document.getElementById('veh-tipo').value,
+    marca:       document.getElementById('veh-marca').value,
+    modelo:      document.getElementById('veh-modelo').value,
+    color:       document.getElementById('veh-color').value,
+    km:          document.getElementById('veh-km').value,
+    capacidad:   document.getElementById('veh-capacidad').value,
+    propietario: document.getElementById('veh-propietario').value,
+    observaciones: document.getElementById('veh-obs').value,
+    editIdx: editVehIdx
+  };
+  if (editVehIdx >= 0) vehiculos[editVehIdx] = v;
+  else vehiculos.push(v);
+  poblarSelectPlacas(); renderVehiculos();
+  cerrarModal('modal-vehiculo');
+  toast('Vehículo guardado');
+  apiPost(v).catch(()=>{});
+}
+
+function cerrarModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ── TABS ───────────────────────────────────────────────────────
+function showTab(name, btn) {
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('sel'));
+  if(btn) btn.classList.add('sel');
+}
+
+// ── HELPERS ────────────────────────────────────────────────────
+function fi(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function fmtFechaDMY(iso){ if(!iso)return'—'; const[y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; }
+function parseFechaDD(s){ if(!s)return null; const p=s.split('/'); return p.length===3?`${p[2]}-${p[1]}-${p[0]}`:s; }
+
+async function apiPost(data){
+  try{const r=await fetch(API_URL,{method:'POST',body:JSON.stringify(data)});return await r.json();}
+  catch{return{error:'offline'};}
+}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+// ── DEMO DATA ──────────────────────────────────────────────────
+function demoMantenimientos(){
+  const hoy = new Date(); const fi = d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const hace = n=>{const d=new Date();d.setDate(d.getDate()-n);return fi(d);};
+  const en   = n=>{const d=new Date();d.setDate(d.getDate()+n);return fi(d);};
+  return[
+    {placa:'ABC-123',tipo:'Aceite/lubricantes',fecha:'15/03/2026',fechaISO:hace(38),descripcion:'Cambio aceite 10W40 + filtro',kmActual:'82000',costo:'180000',taller:'Taller El Motor',proxKm:'87000',proxFecha:en(22)},
+    {placa:'ABC-123',tipo:'SOAT',fecha:'01/01/2026',fechaISO:hace(111),descripcion:'Renovación SOAT',kmActual:'78000',costo:'850000',taller:'Seguros Bolívar',proxKm:'',proxFecha:en(-5)},
+    {placa:'XYZ-456',tipo:'Frenos',fecha:'20/03/2026',fechaISO:hace(33),descripcion:'Cambio pastillas delanteras',kmActual:'65000',costo:'320000',taller:'Frenos Express',proxKm:'85000',proxFecha:en(60)},
+    {placa:'XYZ-456',tipo:'Tecnomecánica',fecha:'15/02/2026',fechaISO:hace(66),descripcion:'Revisión tecnomecánica aprobada',kmActual:'63000',costo:'120000',taller:'CDA Norte',proxKm:'',proxFecha:en(299)},
+    {placa:'DEF-789',tipo:'Aceite/lubricantes',fecha:'10/04/2026',fechaISO:hace(12),descripcion:'Cambio aceite sintético 5W30',kmActual:'91000',costo:'220000',taller:'Lubricantes Speed',proxKm:'96000',proxFecha:en(88)},
+    {placa:'GHI-321',tipo:'Llantas',fecha:'01/04/2026',fechaISO:hace(21),descripcion:'Cambio 2 llantas traseras',kmActual:'74000',costo:'1200000',taller:'Llantas del Valle',proxKm:'114000',proxFecha:en(180)},
+  ];
+}
+function demoVehiculos(){
+  return[
+    {placa:'ABC-123',tipo:'Camión',marca:'Kenworth',modelo:'T800 / 2019',color:'Blanco',km:'82500',capacidad:'10',propietario:'Transportes Mocoa SAS',observaciones:''},
+    {placa:'XYZ-456',tipo:'Furgón',marca:'International',modelo:'4300 / 2020',color:'Azul',km:'65300',capacidad:'8',propietario:'Carlos Muñoz',observaciones:'Requiere revisión de suspensión delantera'},
+    {placa:'DEF-789',tipo:'Camión',marca:'Freightliner',modelo:'M2 / 2018',color:'Gris',km:'91200',capacidad:'12',propietario:'Luis Perdomo',observaciones:''},
+    {placa:'GHI-321',tipo:'Camión',marca:'Volvo',modelo:'FH / 2021',color:'Blanco',km:'74800',capacidad:'15',propietario:'Transportes Mocoa SAS',observaciones:''},
+  ];
+}
+</script>
+</body>
+</html>
